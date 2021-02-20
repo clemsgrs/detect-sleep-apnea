@@ -1,0 +1,18 @@
+{
+    "dataroot": "data",
+    "model": "lstm",
+    "nepochs": 20,
+    "batch_size": 16,
+    "eval_every": 1,
+    "seq_length": 90,
+    "embedding_dim": 100,
+    "hidden_dim": 256,
+    "n_layers": 3,
+    "bidirectional": false,
+    "dropout_p": 0.1,
+    "output_dim": 90,
+    "shuffle": true,
+    "checkpoint_dir": "checkpoints",
+    "result_dir": "results",
+    "gpu_ids": 0
+}
