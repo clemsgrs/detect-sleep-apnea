@@ -5,7 +5,6 @@ import torch.nn.functional as F
 import h5py
 import numpy as np
 import pandas as pd
-import argparse
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.metrics import confusion_matrix, classification_report
@@ -18,11 +17,7 @@ label_path = 'data/y_train_tX9Br0C.csv'
 train_dset = OneChannelDataset(data_path, label_path)
 train_loader = torch.utils.data.DataLoader(train_dset, batch_size=16, shuffle=False)
 
-parser = argparse.ArgumentParser()
-parser.add_argument('--config', type=str, default='default.json', metavar='N', help='config file')
-args = parser.parse_args()
-params = open_config_file(args.config)
-
+params = open_config_file(config/default.json)
 params.gpu_ids = [params.gpu_ids]
 # set gpu ids
 if len(params.gpu_ids) > 0:
