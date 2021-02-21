@@ -1,8 +1,9 @@
 import time
+import h5py
 import torch
 import torch.nn as nn
+import torch.optim as optim
 import torch.nn.functional as F
-import h5py
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -14,12 +15,7 @@ from models import create_model
 from dataset import OneChannelDataModule
 from utils import open_config_file, train_model, evaluate_model
 
-params = open_config_file(config/default.json)
-params.gpu_ids = [params.gpu_ids]
-# set gpu ids
-if len(params.gpu_ids) > 0:
-    torch.cuda.set_device(params.gpu_ids[0])
-
+params = open_config_file('config/default.json')
 args = vars(params)
 
 print('------------ Options -------------')
@@ -27,7 +23,6 @@ for k, v in sorted(args.items()):
     print('%s: %s' % (str(k), str(v)))
 print('-------------- End ----------------')
 
- 
 data_module = OneChannelDataModule(params)
 data_module.setup()
 train_dataset, val_dataset = data_module.train_dataset, data_module.val_dataset
@@ -35,14 +30,18 @@ train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=16, shuffle
 val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=16, shuffle=False)
 
 model = create_model(params)
+optimizer = optim.Adam(model.parameters())
+model = model.to(device)
+criterion = nn.BCELoss()
+criterion = criterion.to(device)
 
 for epoch in range(params.nepochs):
     
     epoch_start_time = time.time()
-    train_loss = train_model(model, train_loader, optimizer, criterion, params):
+    train_loss = train_model(model, train_loader, optimizer, criterion, params)
 
     if epoch % params.eval_every == 0:
-        valid_loss = evaluate_model(model, val_loader, criterion)
+        valid_loss = evaluate_model(model, val_loader, criterion, params)
         if valid_loss < best_valid_loss:
             best_valid_loss = valid_loss
             torch.save(model.state_dict(), 'best_model.pt')

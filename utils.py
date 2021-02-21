@@ -1,4 +1,6 @@
+import json
 import collections
+from tqdm import tqdm
 from metric_dreem import dreem_sleep_apnea_custom_metric
 
 
@@ -57,7 +59,7 @@ def train_model(model, train_loader, optimizer, criterion, params):
     return epoch_loss / len(train_loader)
 
 
-def evaluate_model(model, val_loader, criterion):
+def evaluate_model(model, val_loader, criterion, params):
     
     epoch_loss = 0
     epoch_acc = 0

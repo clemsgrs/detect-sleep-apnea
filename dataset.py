@@ -1,6 +1,9 @@
 import torch
 import h5py
+import numpy as np
 import pandas as pd
+from tqdm import tqdm
+from pathlib import Path
 from sklearn.model_selection import train_test_split
 
 class SleepApneaDataset(torch.utils.data.Dataset):
@@ -26,33 +29,36 @@ class SleepApneaDataset(torch.utils.data.Dataset):
 
 class OneChannelDataset(torch.utils.data.Dataset):
 
-  def __init__(self, df, signal_id=0, signal_freq=100):
+  def __init__(self, data_df, target_df, signal_id=0, signal_freq=100):
 
-    self.df = df
+    self.data_df = data_df
+    self.target_df = target_df
     self.signal_id = signal_id
     self.freq = signal_freq
   
   def __len__(self):
-    return len(self.df)
+    return len(self.data_df)
   
   def __getitem__(self, idx):
     
-    sample_index = self.df[idx, 0]
-    subject_index = self.df[idx, 1]
-    x = self.df[idx, 2+9000*self.signal_id:2+9000*(self.signal_id+1)]
+    sample_index = self.data_df[idx, 0]
+    subject_index = self.data_df[idx, 1]
+    x = self.data_df[idx, 2+9000*self.signal_id:2+9000*(self.signal_id+1)]
     x = x.reshape(-1, self.freq)
-    y = self.targets[self.targets['ID'] == sample_index].values[0][1:]
+    y = self.target_df[self.target_df['ID'] == sample_index].values[0][1:]
 
     return x, y
 
 
 class OneChannelDataModule():
     
-    def __init__(self, params):
+    def __init__(self, p):
 
         self.save_csv = p.save_csv
         self.signal_id = p.signal_id
         self.data_dir = p.data_dir
+        self.data_file = p.data_file
+        self.target_file = p.target_file
     
     def setup(self):
         
@@ -66,12 +72,14 @@ class OneChannelDataModule():
             val_df = pd.read_csv(Path(self.data_dir, 'val.csv'))
             print(f'...done.')
         else:
-            train_df = pd.DataFrame(np.array(h5py.File(data_path, mode='r')['data']))
+            train_df = pd.DataFrame(np.array(h5py.File(Path(self.data_dir, self.data_file), mode='r')['data']))
             train_df, val_df = train_test_split(train_df, test_size=0.3)
             if self.save_csv:
                 train_df.to_csv(Path(self.data_dir, f'train.csv'), index=False)
                 val_df.to_csv(Path(self.data_dir, f'val.csv'), index=False)
 
+        target_df = pd.read_csv(Path(self.data_dir, self.target_file))
+        
         # if Path(self.data_dir, f'test.csv').exists():
         #     print(f'Loading test slides from file...')
         #     test_df = pd.read_csv(Path(self.data_dir, f'test.csv'))
@@ -84,6 +92,6 @@ class OneChannelDataModule():
         train_df = train_df.reset_index()
         val_df = val_df.reset_index()
         self.train_dataset, self.val_dataset = (
-            OneChannelDataset(train_df, self.signal_id),
-            OneChannelDataset(val_df, self.signal_id)
+            OneChannelDataset(train_df, target_df, signal_id=self.signal_id),
+            OneChannelDataset(val_df, target_df, signal_id=self.signal_id)
         )

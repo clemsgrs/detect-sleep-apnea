@@ -1,9 +1,13 @@
 {
     "data_dir": "data",
+    "data_file": "X_train.h5",
+    "target_file": "y_train_tX9Br0C.csv",
     "model": "lstm",
+    "input_dim": 100,
     "nepochs": 20,
     "batch_size": 16,
     "eval_every": 1,
+    "signal_id": 0,
     "seq_length": 90,
     "embedding_dim": 100,
     "hidden_dim": 256,
@@ -14,5 +18,5 @@
     "shuffle": true,
     "checkpoint_dir": "checkpoints",
     "result_dir": "results",
-    "gpu_ids": 0
+    "save_csv": false
 }
