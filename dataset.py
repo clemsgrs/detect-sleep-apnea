@@ -41,9 +41,9 @@ class OneChannelDataset(torch.utils.data.Dataset):
   
   def __getitem__(self, idx):
     
-    sample_index = self.data_df[idx, 0]
-    subject_index = self.data_df[idx, 1]
-    x = self.data_df[idx, 2+9000*self.signal_id:2+9000*(self.signal_id+1)]
+    sample_index = self.data_df.loc[idx, 0]
+    subject_index = self.data_df.loc[idx, 1]
+    x = self.data_df.loc[idx, 2+9000*self.signal_id:2+9000*(self.signal_id+1)-1].values
     x = x.reshape(-1, self.freq)
     y = self.target_df[self.target_df['ID'] == sample_index].values[0][1:]
 
@@ -79,7 +79,7 @@ class OneChannelDataModule():
                 val_df.to_csv(Path(self.data_dir, f'val.csv'), index=False)
 
         target_df = pd.read_csv(Path(self.data_dir, self.target_file))
-        
+
         # if Path(self.data_dir, f'test.csv').exists():
         #     print(f'Loading test slides from file...')
         #     test_df = pd.read_csv(Path(self.data_dir, f'test.csv'))
@@ -89,8 +89,8 @@ class OneChannelDataModule():
         #     test_df = self.tile_dataframe(test_df, phase='test')
         #     test_df.to_csv(Path(self.data_dir, f'test.csv'), index=False)
 
-        train_df = train_df.reset_index()
-        val_df = val_df.reset_index()
+        train_df = train_df.reset_index(drop=True)
+        val_df = val_df.reset_index(drop=True)
         self.train_dataset, self.val_dataset = (
             OneChannelDataset(train_df, target_df, signal_id=self.signal_id),
             OneChannelDataset(val_df, target_df, signal_id=self.signal_id)

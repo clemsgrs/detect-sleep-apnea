@@ -12,7 +12,7 @@
     "embedding_dim": 100,
     "hidden_dim": 256,
     "n_layers": 3,
-    "bidirectional": false,
+    "bidirectional": true,
     "dropout_p": 0.1,
     "output_dim": 90,
     "shuffle": true,

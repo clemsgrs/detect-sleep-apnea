@@ -13,7 +13,7 @@ from sklearn.metrics import confusion_matrix, classification_report
 
 from models import create_model
 from dataset import OneChannelDataModule
-from utils import open_config_file, train_model, evaluate_model
+from utils import open_config_file, train_model, evaluate_model, epoch_time
 
 params = open_config_file('config/default.json')
 args = vars(params)
@@ -35,17 +35,18 @@ model = model.to(device)
 criterion = nn.BCELoss()
 criterion = criterion.to(device)
 
+best_valid_loss = float('inf')
 for epoch in range(params.nepochs):
     
-    epoch_start_time = time.time()
-    train_loss = train_model(model, train_loader, optimizer, criterion, params)
+    start_time = time.time()
+    train_loss = train_model(epoch, model, train_loader, optimizer, criterion, params)
 
     if epoch % params.eval_every == 0:
-        valid_loss = evaluate_model(model, val_loader, criterion, params)
+        valid_loss = evaluate_model(epoch, model, val_loader, criterion, params)
         if valid_loss < best_valid_loss:
             best_valid_loss = valid_loss
             torch.save(model.state_dict(), 'best_model.pt')
     
     end_time = time.time()
     epoch_mins, epoch_secs = epoch_time(start_time, end_time)
-    print(f'End of epoch {epoch+1} / {params.nepochs+1} \t Time Taken:  {epoch_mins}m {epoch_secs}s')
+    print(f'\nEnd of epoch {epoch+1} / {params.nepochs} \t Val loss = {np.round(valid_loss,6)} \t Time Taken:  {epoch_mins}m {epoch_secs}s')

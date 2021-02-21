@@ -1,4 +1,5 @@
 import json
+import torch
 import collections
 from tqdm import tqdm
 from metric_dreem import dreem_sleep_apnea_custom_metric
@@ -24,7 +25,7 @@ def epoch_time(start_time, end_time):
   return elapsed_mins, elapsed_secs
 
 
-def train_model(model, train_loader, optimizer, criterion, params):
+def train_model(epoch, model, train_loader, optimizer, criterion, params):
     
     epoch_loss = 0
     epoch_acc = 0
@@ -40,7 +41,7 @@ def train_model(model, train_loader, optimizer, criterion, params):
 
             optimizer.zero_grad()
             signal = signal.type(torch.FloatTensor)
-            signal, target = signal.to(device), target.to(device)
+            signal, target = signal.cuda(), target.cuda()
             signal = signal.permute(1,0,2)
 
             preds = model(signal).squeeze(1)
@@ -59,7 +60,7 @@ def train_model(model, train_loader, optimizer, criterion, params):
     return epoch_loss / len(train_loader)
 
 
-def evaluate_model(model, val_loader, criterion, params):
+def evaluate_model(epoch, model, val_loader, criterion, params):
     
     epoch_loss = 0
     epoch_acc = 0
@@ -76,7 +77,7 @@ def evaluate_model(model, val_loader, criterion, params):
             for i, (signal, target) in enumerate(t):
 
                 signal = signal.type(torch.FloatTensor)
-                signal, target = signal.to(device), target.to(device)
+                signal, target = signal.cuda(), target.cuda()
                 signal = signal.permute(1,0,2)
 
                 preds = model(signal).squeeze(1)
