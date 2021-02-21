@@ -19,7 +19,7 @@ def create_model(p):
     else:
         raise ValueError(f'Model {p.model} not recognized')
 
-    print(f'{p.model} was created')
+    print(f'{p.model} was created\n')
     
     return model
 

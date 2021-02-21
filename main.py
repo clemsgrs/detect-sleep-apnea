@@ -31,22 +31,22 @@ val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=16, shuffle=Fal
 
 model = create_model(params)
 optimizer = optim.Adam(model.parameters())
-model = model.to(device)
+model = model.cuda()
 criterion = nn.BCELoss()
-criterion = criterion.to(device)
+criterion = criterion.cuda()
 
 best_valid_loss = float('inf')
 for epoch in range(params.nepochs):
     
     start_time = time.time()
-    train_loss = train_model(epoch, model, train_loader, optimizer, criterion, params)
+    train_loss = train_model(epoch+1, model, train_loader, optimizer, criterion, params)
 
     if epoch % params.eval_every == 0:
-        valid_loss = evaluate_model(epoch, model, val_loader, criterion, params)
+        valid_loss = evaluate_model(epoch+1, model, val_loader, criterion, params)
         if valid_loss < best_valid_loss:
             best_valid_loss = valid_loss
             torch.save(model.state_dict(), 'best_model.pt')
     
     end_time = time.time()
     epoch_mins, epoch_secs = epoch_time(start_time, end_time)
-    print(f'\nEnd of epoch {epoch+1} / {params.nepochs} \t Val loss = {np.round(valid_loss,6)} \t Time Taken:  {epoch_mins}m {epoch_secs}s')
+    print(f'End of epoch {epoch+1} / {params.nepochs} \t Val loss = {np.round(valid_loss,6)} \t Time Taken:  {epoch_mins}m {epoch_secs}s\n')
