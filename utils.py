@@ -2,6 +2,7 @@ import json
 import torch
 import collections
 from tqdm import tqdm
+import matplotlib.pyplot as plt
 from metric_dreem import dreem_sleep_apnea_custom_metric
 
 
@@ -91,3 +92,30 @@ def evaluate_model(epoch, model, val_loader, criterion, params):
 
     return epoch_loss / len(val_loader), epoch_acc / len(val_loader)
     # return epoch_loss / len(val_loader)
+
+def plot_curves(train_losses, train_accuracies, validation_losses, validation_accuracies, params):
+
+    x = range(params.nepochs)
+    fig, axs = plt.subplots(2, 2)
+    axs[0,0].plot(x, train_losses)
+    # axs[0,0].set_title('Axis [0,0]')
+    axs[0,0].set_xlabel('epochs')
+    axs[0,0].set_ylabel('loss')
+    axs[0,1].plot(x, validation_losses, 'tab:orange')
+    # axs[0,1].set_title('Axis [0,1]')
+    axs[0,1].set_xlabel('epochs')
+    axs[0,1].set_ylabel('loss')
+    axs[1,0].plot(x, train_accuracies, 'tab:green')
+    # axs[1,0].set_title('Axis [1,0]')
+    axs[1,0].set_xlabel('epochs')
+    axs[1,0].set_ylabel('acc')
+    axs[1,1].plot(x, validation_accuracies, 'tab:red')
+    # axs[1,1].set_title('Axis [1,1]')
+    axs[1,1].set_xlabel('epochs')
+    axs[1,1].set_ylabel('acc')
+
+    # Hide x labels and tick labels for top plots and y ticks for right plots.
+    for ax in axs.flat:
+        ax.label_outer()
+
+    plt.savefig('curves.pdf')
