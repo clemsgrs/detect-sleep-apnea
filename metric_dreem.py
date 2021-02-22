@@ -67,8 +67,8 @@ def compute_f1_score(event_pred, event_true):
         total_fp += fp
         total_fn +=fn
 
-    precision = total_tp / (total_tp + total_fp)
-    recall = total_tp / (total_tp + total_fn)
+    precision = total_tp / (1e-6 + total_tp + total_fp)
+    recall = total_tp / (1e-6 + total_tp + total_fn)
     if precision == 0 or recall == 0:
         f1_score = 0
     else:
