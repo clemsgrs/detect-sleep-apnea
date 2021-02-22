@@ -36,17 +36,22 @@ criterion = nn.BCELoss()
 criterion = criterion.cuda()
 
 best_valid_loss = float('inf')
+best_valid_acc = 0.0
 for epoch in range(params.nepochs):
     
     start_time = time.time()
-    train_loss = train_model(epoch+1, model, train_loader, optimizer, criterion, params)
+    # train_loss = train_model(epoch+1, model, train_loader, optimizer, criterion, params)
+    train_loss, train_acc = train_model(epoch+1, model, train_loader, optimizer, criterion, params)
 
     if epoch % params.eval_every == 0:
-        valid_loss = evaluate_model(epoch+1, model, val_loader, criterion, params)
+        # valid_loss = evaluate_model(epoch+1, model, val_loader, criterion, params)
+        valid_loss, valid_acc = evaluate_model(epoch+1, model, val_loader, criterion, params)
         if valid_loss < best_valid_loss:
             best_valid_loss = valid_loss
             torch.save(model.state_dict(), 'best_model.pt')
     
     end_time = time.time()
     epoch_mins, epoch_secs = epoch_time(start_time, end_time)
-    print(f'End of epoch {epoch+1} / {params.nepochs} \t Val loss = {np.round(valid_loss,6)} \t Time Taken:  {epoch_mins}m {epoch_secs}s\n')
+    print(f'End of epoch {epoch+1} / {params.nepochs} \t Time Taken:  {epoch_mins}m {epoch_secs}s')
+    print(f'Training loss: {np.round(train_loss,6)} \t Training acc: {np.round(train_acc,4)}')
+    print(f'Validation loss: {np.round(valid_loss,6)} \t Validation acc: {np.round(valid_acc,4)}\n')

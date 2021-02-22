@@ -48,16 +48,16 @@ def train_model(epoch, model, train_loader, optimizer, criterion, params):
             preds = preds.type(torch.FloatTensor).cpu()
             target = target.type(torch.FloatTensor).cpu()
             loss = criterion(preds, target)
-            # acc = dreem_sleep_apnea_custom_metric((preds.detach()>0.5).float(), target.detach())
+            acc = dreem_sleep_apnea_custom_metric((preds.detach()>0.5).float(), target.detach())
 
             loss.backward()
             optimizer.step()
 
             epoch_loss += loss.item()
-            # epoch_acc += acc
+            epoch_acc += acc
 
-    # return epoch_loss / len(train_loader), epoch_acc / len(train_loader)
-    return epoch_loss / len(train_loader)
+    return epoch_loss / len(train_loader), epoch_acc / len(train_loader)
+    # return epoch_loss / len(train_loader)
 
 
 def evaluate_model(epoch, model, val_loader, criterion, params):
@@ -84,10 +84,10 @@ def evaluate_model(epoch, model, val_loader, criterion, params):
                 preds = preds.type(torch.FloatTensor).cpu()
                 target = target.type(torch.FloatTensor).cpu()
                 loss = criterion(preds, target)
-                # acc = dreem_sleep_apnea_custom_metric((preds.detach()>0.5).float(), target.detach())
+                acc = dreem_sleep_apnea_custom_metric((preds.detach()>0.5).float(), target.detach())
 
                 epoch_loss += loss.item()
-                # epoch_acc += acc
+                epoch_acc += acc
 
-    # return epoch_loss / len(val_loader), epoch_acc / len(val_loader)
-    return epoch_loss / len(val_loader)
+    return epoch_loss / len(val_loader), epoch_acc / len(val_loader)
+    # return epoch_loss / len(val_loader)
