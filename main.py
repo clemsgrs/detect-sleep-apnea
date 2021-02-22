@@ -71,4 +71,4 @@ for epoch in range(params.nepochs):
     print(f'Train loss: {np.round(train_loss,6)} \t Train acc: {np.round(train_acc,4)}')
     print(f'Val loss: {np.round(valid_loss,6)} \t Val acc: {np.round(valid_acc,4)}\n')
 
-plot_curves(train_losses, train_accuracies, validation_losses, validation_accuracies, params)
+plot_curves(train_losses, train_accuracies, val_losses, val_accuracies, params)
