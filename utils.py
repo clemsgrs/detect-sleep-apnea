@@ -96,20 +96,21 @@ def evaluate_model(epoch, model, val_loader, criterion, params):
 def plot_curves(train_losses, train_accuracies, validation_losses, validation_accuracies, params):
 
     x = range(params.nepochs)
-    fig, axs = plt.subplots(2,1)
-    axs[0,0].plot(x, train_losses, label='train', color='#6F1BDA')
-    axs[0,1].plot(x, validation_losses, label='val', color='#DA1BC6')
-    axs[0,0].set_xlabel('epochs')
-    axs[0,0].set_ylabel('loss')
-    # axs[0,0].set_title('Axis [0,0]')
-    axs[1,0].plot(x, train_accuracies, label='train', color='#6F1BDA')
-    axs[1,0].plot(x, validation_accuracies, label='val', color='#DA1BC6')
-    axs[1,0].set_xlabel('epochs')
-    axs[1,0].set_ylabel('acc')
-    # axs[1,0].set_title('Axis [1,1]')
+    fig, axs = plt.subplots(2, 1)
+    axs[0].plot(x, train_losses, label='train', color='#6F1BDA')
+    axs[0].plot(x, validation_losses, label='val', color='#DA1BC6')
+    axs[0].set_xlabel('epochs')
+    axs[0].set_ylabel('loss')
+    axs[0].set_title('Loss')
+    axs[1].plot(x, train_accuracies, label='train', color='#6F1BDA')
+    axs[1].plot(x, validation_accuracies, label='val', color='#DA1BC6')
+    axs[1].set_xlabel('epochs')
+    axs[1].set_ylabel('acc')
+    axs[1].set_title('Accuracy')
 
     # Hide x labels and tick labels for top plots and y ticks for right plots.
     for ax in axs.flat:
         ax.label_outer()
-
+    
+    plt.legend()
     plt.savefig('curves.pdf')
