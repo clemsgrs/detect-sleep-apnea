@@ -43,7 +43,6 @@ def train_model(epoch, model, train_loader, optimizer, criterion, params):
             optimizer.zero_grad()
             signal = signal.type(torch.FloatTensor)
             signal, target = signal.cuda(), target.cuda()
-            signal = signal.permute(1,0,2)
 
             preds = model(signal).squeeze(1)
             preds = preds.type(torch.FloatTensor).cpu()
@@ -79,7 +78,6 @@ def evaluate_model(epoch, model, val_loader, criterion, params):
 
                 signal = signal.type(torch.FloatTensor)
                 signal, target = signal.cuda(), target.cuda()
-                signal = signal.permute(1,0,2)
 
                 preds = model(signal).squeeze(1)
                 preds = preds.type(torch.FloatTensor).cpu()

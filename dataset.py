@@ -29,12 +29,13 @@ class SleepApneaDataset(torch.utils.data.Dataset):
 
 class OneChannelDataset(torch.utils.data.Dataset):
 
-  def __init__(self, data_df, target_df, signal_id=0, signal_freq=100, reshape=True):
+  def __init__(self, data_df, target_df, signal_id=0, signal_freq=100, use_conv=True):
 
     self.data_df = data_df
     self.target_df = target_df
     self.signal_id = signal_id
     self.freq = signal_freq
+    self.use_conv = use_conv
   
   def __len__(self):
     return len(self.data_df)
@@ -44,7 +45,9 @@ class OneChannelDataset(torch.utils.data.Dataset):
     sample_index = self.data_df.loc[idx, 0]
     subject_index = self.data_df.loc[idx, 1]
     x = self.data_df.loc[idx, 2+9000*self.signal_id:2+9000*(self.signal_id+1)-1].values
-    if reshape:
+    if self.use_conv:
+      x = x.reshape(1, -1)
+    else:
       x = x.reshape(-1, self.freq)
     y = self.target_df[self.target_df['ID'] == sample_index].values[0][1:]
 
@@ -60,7 +63,7 @@ class OneChannelDataModule():
         self.data_dir = p.data_dir
         self.data_file = p.data_file
         self.target_file = p.target_file
-        self.reshape = (p.use_conv == False)
+        self.use_conv = p.use_conv
     
     def setup(self):
         
@@ -94,6 +97,6 @@ class OneChannelDataModule():
         train_df = train_df.reset_index(drop=True)
         val_df = val_df.reset_index(drop=True)
         self.train_dataset, self.val_dataset = (
-            OneChannelDataset(train_df, target_df, signal_id=self.signal_id, reshape=self.reshape),
-            OneChannelDataset(val_df, target_df, signal_id=self.signal_id, reshape=self.reshape)
+            OneChannelDataset(train_df, target_df, signal_id=self.signal_id, use_conv=self.use_conv),
+            OneChannelDataset(val_df, target_df, signal_id=self.signal_id, use_conv=self.use_conv)
         )

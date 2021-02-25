@@ -42,6 +42,7 @@ class LSTM(nn.Module):
     
   def forward(self, x):
     
+    x = x.permute(1,0,2)
     output, (hidden, cell) = self.rnn(x)
 
     if self.bidirectional:
@@ -62,23 +63,25 @@ class Conv1D(nn.Module):
     self.conv1 = nn.Conv1d(1, 16, 3)
     self.conv2 = nn.Conv1d(16, 32, 3)
     self.conv3 = nn.Conv1d(32, 64, 3)
-    self.pool = nn.MaxPool1d(3, stride=2)
+    self.maxpool = nn.MaxPool1d(3, stride=2)
+    self.avgpool = nn.AdaptiveAvgPool1d(256)
 
-    self.fc = nn.Linear(18432, p.conv_output_dim)
+    self.fc = nn.Linear(256*64, p.conv_output_dim)
     self.relu = nn.ReLU()
     
   def forward(self, x):
     
     x = self.conv1(x)
     x = self.relu(x)
-    x = self.pool(x)
+    x = self.maxpool(x)
     
     x = self.conv2(x)
     x = self.relu(x)
-    x = self.pool(x)
+    x = self.maxpool(x)
     
     x = self.conv3(x)
     x = self.relu(x)
+    x = self.avgpool(x)
 
     x = x.view(-1)
     x = self.fc(x)
