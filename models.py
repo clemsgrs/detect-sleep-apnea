@@ -63,11 +63,12 @@ class Conv1D(nn.Module):
     self.conv1 = nn.Conv1d(1, 16, 3)
     self.conv2 = nn.Conv1d(16, 32, 3)
     self.conv3 = nn.Conv1d(32, 64, 3)
-    self.maxpool = nn.MaxPool1d(3, stride=2)
-    self.avgpool = nn.AdaptiveAvgPool1d(256)
+    self.maxpool = nn.MaxPool1d(10)
+    self.avgpool = nn.AdaptiveAvgPool1d(100)
 
-    self.fc = nn.Linear(256*64, p.conv_output_dim)
+    self.fc = nn.Linear(100*64, 90*p.conv_output_dim)
     self.relu = nn.ReLU()
+    self.flatten = nn.Flatten()
     
   def forward(self, x):
     
@@ -83,9 +84,10 @@ class Conv1D(nn.Module):
     x = self.relu(x)
     x = self.avgpool(x)
 
-    x = x.view(-1)
+    x = self.flatten(x)
     x = self.fc(x)
-    
+    x = x.reshape(x.shape[0], 90, 10)
+
     return x
 
 class CustomModel(nn.Module):
