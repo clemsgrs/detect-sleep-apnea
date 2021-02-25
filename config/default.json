@@ -4,6 +4,7 @@
     "target_file": "y_train_tX9Br0C.csv",
     "model": "lstm",
     "use_conv": true,
+    "conv_output_dim": 10,
     "input_dim": 100,
     "nepochs": 60,
     "batch_size": 16,

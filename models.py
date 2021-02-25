@@ -64,7 +64,7 @@ class Conv1D(nn.Module):
     self.conv3 = nn.Conv1d(32, 64, 3)
     self.pool = nn.MaxPool1d(3, stride=2)
 
-    self.fc = nn.Linear(18432,10)
+    self.fc = nn.Linear(18432, p.conv_output_dim)
     self.relu = nn.ReLU()
     
   def forward(self, x):
@@ -93,6 +93,7 @@ class CustomModel(nn.Module):
 
     self.conv = Conv1D(p)
     if p.model == 'lstm':
+      p.input_dim = p.conv_output_dim
       self.rnn = LSTM(p)
     else:
       raise ValueError(f'{p.model} not supported yet')
