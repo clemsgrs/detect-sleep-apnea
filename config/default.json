@@ -3,6 +3,7 @@
     "data_file": "X_train.h5",
     "target_file": "y_train_tX9Br0C.csv",
     "model": "lstm",
+    "use_conv": true,
     "input_dim": 100,
     "nepochs": 60,
     "batch_size": 16,
