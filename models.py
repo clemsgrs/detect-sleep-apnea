@@ -53,3 +53,35 @@ class LSTM(nn.Module):
     # hidden = [batch size, hid dim * num directions]
         
     return torch.sigmoid(self.fc(hidden))
+
+class Conv1D(nn.Module):
+
+  def __init__(self, p):
+    
+    super().__init__()
+
+    self.conv1 = nn.Conv1d(1, 16, 3)
+    self.conv2 = nn.Conv1d(16, 32, 3)
+    self.conv3 = nn.Conv1d(32, 64, 3)
+    self.pool = nn.MaxPool1d(3, stride=2)
+
+    self.fc = nn.Linear(18432,10)
+    self.relu = nn.ReLU()
+    
+  def forward(self, x):
+    
+    x = self.conv1(x)
+    x = self.relu(x)
+    x = self.pool(x)
+    
+    x = self.conv2(x)
+    x = self.relu(x)
+    x = self.pool(x)
+    
+    x = self.conv3(x)
+    x = self.relu(x)
+
+    x = x.view(-1)
+    x = self.fc(x)
+    
+    return x
