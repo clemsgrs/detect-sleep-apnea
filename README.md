@@ -2,7 +2,7 @@
 ENS challenge data
 
 # How to run code?
-To train a model, just download the `train_test.ipynb` notebook and open it with Google Colab. In the notebook, we first download the data, then we run training.
+To train a model, just download the `dreem_lstm.ipynb` notebook and open it with Google Colab. In the notebook, we first download the data, then we run training.
 
 # Roadmap:
 - [ ] normalize raw inputs (substract mean & divide by std)
