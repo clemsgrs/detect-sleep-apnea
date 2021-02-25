@@ -2,23 +2,22 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+allowed_model_names = ['conv', 'rnn', 'lstm', 'gru', 'transformer']
 
 def create_model(p):
 
-    model = None
-    print(p.model)
-    
-    if p.model == 'rnn':
-        model = RNN(p)
-    elif p.model == 'lstm':
-        model = LSTM(p)
-    elif p.model == 'gru':
-        model = GRU(p)
-    elif p.model == 'bert':
-        model = BERT(p)
+    model = None    
+    if p.model not in allowed_model_names: 
+      raise ValueError(f'Model {p.model} not recognized')
     else:
-        raise ValueError(f'Model {p.model} not recognized')
-
+      if p.use_conv:
+        model = CustomModel(p)
+      else:
+        if p.model == 'lstm':
+          model = LSTM(p)
+        elif p.model == 'conv':
+          model = Conv1D(p)
+    
     print(f'{p.model} was created\n')
     
     return model
@@ -83,5 +82,26 @@ class Conv1D(nn.Module):
 
     x = x.view(-1)
     x = self.fc(x)
+    
+    return x
+
+class CustomModel(nn.Module):
+
+  def __init__(self, p):
+    
+    super().__init__()
+
+    self.conv = Conv1D(p)
+    if p.model == 'lstm':
+      self.rnn = LSTM(p)
+    else:
+      raise ValueError(f'{p.model} not supported yet')
+    self.relu = nn.ReLU()
+    
+  def forward(self, x):
+    
+    x = self.conv(x)
+    x = self.relu(x)
+    x = self.rnn(x)
     
     return x
