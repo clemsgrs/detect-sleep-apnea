@@ -27,15 +27,15 @@ def epoch_time(start_time, end_time):
 
 
 def train_model(epoch, model, train_loader, optimizer, criterion, params):
-    
+
     epoch_loss = 0
     epoch_acc = 0
     model.train()
-    
-    with tqdm(train_loader, 
-              desc=(f'Train - Epoch: {epoch}'), 
-              unit=' patient', 
-              ncols=80, 
+
+    with tqdm(train_loader,
+              desc=(f'Train - Epoch: {epoch}'),
+              unit=' patient',
+              ncols=80,
               unit_scale=params.batch_size) as t:
 
         for i, (signal, target) in enumerate(t):
@@ -48,7 +48,7 @@ def train_model(epoch, model, train_loader, optimizer, criterion, params):
             preds = preds.type(torch.FloatTensor).cpu()
             target = target.type(torch.FloatTensor).cpu()
             loss = criterion(preds, target)
-            acc = dreem_sleep_apnea_custom_metric((preds.detach()>0.5).float(), target.detach())
+            acc = dreem_sleep_apnea_custom_metric((preds.detach()>0.5).float(), (target.detach()>0.5).float())
 
             loss.backward()
             optimizer.step()
@@ -61,15 +61,15 @@ def train_model(epoch, model, train_loader, optimizer, criterion, params):
 
 
 def evaluate_model(epoch, model, val_loader, criterion, params):
-    
+
     epoch_loss = 0
     epoch_acc = 0
     model.eval()
-    
-    with tqdm(val_loader, 
-             desc=(f'Validation - Epoch: {epoch}'), 
-             unit=' patient', 
-             ncols=80, 
+
+    with tqdm(val_loader,
+             desc=(f'Validation - Epoch: {epoch}'),
+             unit=' patient',
+             ncols=80,
              unit_scale=params.batch_size) as t:
 
         with torch.no_grad():
@@ -83,7 +83,7 @@ def evaluate_model(epoch, model, val_loader, criterion, params):
                 preds = preds.type(torch.FloatTensor).cpu()
                 target = target.type(torch.FloatTensor).cpu()
                 loss = criterion(preds, target)
-                acc = dreem_sleep_apnea_custom_metric((preds.detach()>0.5).float(), target.detach())
+                acc = dreem_sleep_apnea_custom_metric((preds.detach()>0.5).float(), (target.detach()>0.5).float())
 
                 epoch_loss += loss.item()
                 epoch_acc += acc
@@ -111,6 +111,6 @@ def plot_curves(train_losses, train_accuracies, validation_losses, validation_ac
     # Hide x labels and tick labels for top plots and y ticks for right plots.
     for ax in axs.flat:
         ax.label_outer()
-    
+
     plt.savefig('curves.pdf')
     plt.show()
