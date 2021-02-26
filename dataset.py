@@ -16,7 +16,7 @@ def binary_to_smooth(arr):
     for k in range(len(Begins)):
         l = Ends[k]+1-Begins[k]
         midd = l//2
-        y_smooth[Begins[k]:Ends[k]+1] = np.exp(-((np.arange(l)-midd*np.ones(l)))**2/(midd**2))
+        y_smooth[Begins[k]:Ends[k]+1] = np.exp(-((np.arange(l)-midd*np.ones(l)))**2/((midd+pow(10,-5))**2))
     return(y_smooth)
 
 
