@@ -50,6 +50,7 @@ class OneChannelDataset(torch.utils.data.Dataset):
     self.signal_id = signal_id
     self.freq = signal_freq
     self.use_conv = use_conv
+    self.smooth_y=smooth_y
 
   def __len__(self):
     return len(self.data_df)
@@ -64,7 +65,7 @@ class OneChannelDataset(torch.utils.data.Dataset):
     else:
       x = x.reshape(-1, self.freq)
     y = self.target_df[self.target_df['ID'] == sample_index].values[0][1:]
-    if(smooth_y):
+    if(self.smooth_y):
         y = binary_to_smooth(y)
     return x, y
 
