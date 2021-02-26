@@ -42,7 +42,7 @@ train_losses, val_losses = [], []
 train_accuracies, val_accuracies = [], []
 
 for epoch in range(params.nepochs):
-    
+
     start_time = time.time()
     # train_loss = train_model(epoch+1, model, train_loader, optimizer, criterion, params)
     train_loss, train_acc = train_model(epoch+1, model, train_loader, optimizer, criterion, params)
@@ -54,17 +54,17 @@ for epoch in range(params.nepochs):
         valid_loss, valid_acc = evaluate_model(epoch+1, model, val_loader, criterion, params)
         val_losses.append(valid_loss)
         val_accuracies.append(valid_acc)
-        
+
         if params.tracking == 'val_loss':
             if valid_loss < best_valid_loss:
                 best_valid_loss = valid_loss
                 torch.save(model.state_dict(), 'best_model.pt')
-        
+
         elif params.tracking == 'val_acc':
             if valid_acc > best_valid_acc:
                 best_valid_acc = valid_acc
                 torch.save(model.state_dict(), 'best_model.pt')
-    
+
     end_time = time.time()
     epoch_mins, epoch_secs = epoch_time(start_time, end_time)
     print(f'End of epoch {epoch+1} / {params.nepochs} \t Time Taken:  {epoch_mins}m {epoch_secs}s')

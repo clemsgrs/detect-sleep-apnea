@@ -21,5 +21,6 @@
     "shuffle": true,
     "checkpoint_dir": "checkpoints",
     "result_dir": "results",
-    "save_csv": false
+    "save_csv": false,
+    "smooth_y": true
 }
