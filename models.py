@@ -63,10 +63,12 @@ class Conv1D(nn.Module):
     self.seq_length = p.seq_length
     self.conv_output_dim = p.conv_output_dim
     self.in_channels = len(p.signal_ids)
+    self.ks = p.kernel_sizes
+    assert len(self.ks) == 3
 
-    self.conv1 = nn.Conv1d(self.in_channels, 16, 90)
-    self.conv2 = nn.Conv1d(16, 32, 40)
-    self.conv3 = nn.Conv1d(32, 64, 20)
+    self.conv1 = nn.Conv1d(self.in_channels, 16, self.ks[0])
+    self.conv2 = nn.Conv1d(16, 32, self.ks[1])
+    self.conv3 = nn.Conv1d(32, 64, self.ks[2])
     self.maxpool = nn.MaxPool1d(10)
     self.avgpool = nn.AdaptiveAvgPool1d(100)
     self.dropout = nn.Dropout(p.dropout_p)

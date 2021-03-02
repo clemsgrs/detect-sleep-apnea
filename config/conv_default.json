@@ -9,6 +9,7 @@
     "signal_ids": [0],
     "model": "conv",
     "use_conv": true,
+    "kernel_sizes": [3,3,3],
     "conv_output_dim": 1,
     "input_dim": 100,
     "seq_length": 90,
