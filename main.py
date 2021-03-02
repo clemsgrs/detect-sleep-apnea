@@ -22,7 +22,7 @@ args = parser.parse_args()
 params = open_config_file(args.config)
 
 print('------------ Options -------------')
-for k, v in sorted(args.items()):
+for k, v in vars(params).items():
     print('%s: %s' % (str(k), str(v)))
 print('-------------- End ----------------')
 
