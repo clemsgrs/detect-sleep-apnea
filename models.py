@@ -15,8 +15,6 @@ def create_model(p):
       else:
         if p.model == 'lstm':
           model = LSTM(p)
-        elif p.model == 'conv':
-          model = Conv1D(p)
 
     print(f'{p.model} was created\n')
 
