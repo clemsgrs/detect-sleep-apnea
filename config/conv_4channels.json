@@ -1,0 +1,21 @@
+{
+    "data_dir": "data",
+    "data_file": "X_train.h5",
+    "target_file": "y_train_tX9Br0C.csv",
+    "nepochs": 60,
+    "batch_size": 16,
+    "eval_every": 1,
+    "tracking": "val_loss",
+    "signal_ids": [0,1,2,3],
+    "model": "conv",
+    "use_conv": true,
+    "conv_output_dim": 1,
+    "input_dim": 100,
+    "seq_length": 90,
+    "dropout_p": 0.1,
+    "shuffle": true,
+    "checkpoint_dir": "checkpoints",
+    "result_dir": "results",
+    "save_csv": false,
+    "smooth_y": false
+}
