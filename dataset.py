@@ -41,15 +41,16 @@ class SleepApneaDataset(torch.utils.data.Dataset):
     sample_index = self.data_df.iloc[idx, 0]
     subject_index = self.data_df.iloc[idx, 1]
     if self.n_signal == 1:
-      x = self.data_df.iloc[idx, 2+self.signal_dim*self.signal_id:2+self.signal_dim*(self.signal_id+1)].values
+      signal_id = self.signal_ids[0]
+      x = self.data_df.iloc[idx, 2+self.signal_dim*signal_id:2+self.signal_dim*(signal_id+1)].values
       if self.use_conv:
         x = x.reshape(1, -1)
       else:
         x = x.reshape(-1, self.freq)
     else:
-      x = np.zeros((1, self.n_signal, self.signal_dim))
+      x = np.zeros((self.n_signal, self.signal_dim))
       for i, signal_id in enumerate(self.signal_ids):
-        x[0,i] = self.data_df.iloc[idx, 2+self.signal_dim*self.signal_id:2+self.signal_dim*(self.signal_id+1)].values
+        x[i] = self.data_df.iloc[idx, 2+self.signal_dim*signal_id:2+self.signal_dim*(signal_id+1)].values
     y = self.target_df[self.target_df['ID'] == sample_index].values[0][1:]
     if(self.smooth_y):
       y = binary_to_smooth(y)
