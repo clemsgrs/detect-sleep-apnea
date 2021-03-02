@@ -6,7 +6,7 @@
     "batch_size": 16,
     "eval_every": 1,
     "tracking": "val_loss",
-    "signal_id": 0,
+    "signal_ids": [0],
     "model": "conv",
     "use_conv": true,
     "conv_output_dim": 1,

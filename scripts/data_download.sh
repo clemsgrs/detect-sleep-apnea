@@ -1,2 +1,4 @@
 #!/usr/bin/env bash
-gdown --id 1wK0S9dmFqwNZV_Uq3ToD9zsWzltcsi8x
+gdown --id 1ioWzPHhrhRjUziGHBKkR3aIiqeZm6x4a
+unzip -q data.zip
+rm data.zip
