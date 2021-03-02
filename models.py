@@ -60,13 +60,16 @@ class Conv1D(nn.Module):
 
     super().__init__()
 
+    self.seq_length = p.seq_length
+    self.conv_output_dim = p.conv_output_dim
+
     self.conv1 = nn.Conv1d(1, 16, 3)
     self.conv2 = nn.Conv1d(16, 32, 3)
     self.conv3 = nn.Conv1d(32, 64, 3)
     self.maxpool = nn.MaxPool1d(10)
     self.avgpool = nn.AdaptiveAvgPool1d(100)
 
-    self.fc = nn.Linear(100*64, 90*p.conv_output_dim)
+    self.fc = nn.Linear(100*64, self.seq_length*self.conv_output_dim)
     self.relu = nn.ReLU()
     self.flatten = nn.Flatten()
 
@@ -86,7 +89,6 @@ class Conv1D(nn.Module):
 
     x = self.flatten(x)
     x = self.fc(x)
-    x = x.reshape(x.shape[0], 90, 10)
 
     return x
 
@@ -96,18 +98,25 @@ class CustomModel(nn.Module):
 
     super().__init__()
 
+    self.model = p.model
+    self.seq_length = p.seq_length
+    self.conv_output_dim = p.conv_output_dim
     self.conv = Conv1D(p)
+    self.relu = nn.ReLU()
+
     if p.model == 'lstm':
       p.input_dim = p.conv_output_dim
       self.rnn = LSTM(p)
-    else:
+    elif p.model != 'conv':
       raise ValueError(f'{p.model} not supported yet')
-    self.relu = nn.ReLU()
 
   def forward(self, x):
 
     x = self.conv(x)
-    x = self.relu(x)
-    x = self.rnn(x)
+    
+    if self.model == 'lstm':
+      x = x.reshape(x.shape[0], self.seq_length, self.conv_output_dim)
+      x = self.relu(x)
+      x = self.rnn(x)
 
     return x
