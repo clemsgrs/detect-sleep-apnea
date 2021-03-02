@@ -4,6 +4,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
+import argparse
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -15,8 +16,10 @@ from models import create_model
 from dataset import OneChannelDataModule
 from utils import open_config_file, train_model, evaluate_model, epoch_time, plot_curves
 
-params = open_config_file('config/default.json')
-args = vars(params)
+parser = argparse.ArgumentParser()
+parser.add_argument('--config', type=str, default="config/default.json", metavar='N', help='config file')
+args = parser.parse_args()
+params = open_config_file(args.config)
 
 print('------------ Options -------------')
 for k, v in sorted(args.items()):
