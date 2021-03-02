@@ -15,6 +15,8 @@ def create_model(p):
       else:
         if p.model == 'lstm':
           model = LSTM(p)
+        elif p.model == 'conv':
+          model = Conv1D(p)
 
     print(f'{p.model} was created\n')
 
@@ -50,7 +52,7 @@ class LSTM(nn.Module):
 
     # hidden = [batch size, hid dim * num directions]
 
-    return torch.sigmoid(self.fc(hidden))
+    return self.fc(hidden)
 
 class Conv1D(nn.Module):
 
@@ -66,6 +68,7 @@ class Conv1D(nn.Module):
     self.conv3 = nn.Conv1d(32, 64, 3)
     self.maxpool = nn.MaxPool1d(10)
     self.avgpool = nn.AdaptiveAvgPool1d(100)
+    self.dropout = nn.Dropout(p.dropout_p)
 
     self.fc = nn.Linear(100*64, self.seq_length*self.conv_output_dim)
     self.relu = nn.ReLU()
@@ -75,14 +78,17 @@ class Conv1D(nn.Module):
 
     x = self.conv1(x)
     x = self.relu(x)
+    x = self.dropout(x)
     x = self.maxpool(x)
 
     x = self.conv2(x)
     x = self.relu(x)
+    x = self.dropout(x)
     x = self.maxpool(x)
 
     x = self.conv3(x)
     x = self.relu(x)
+    x = self.dropout(x)
     x = self.avgpool(x)
 
     x = self.flatten(x)
@@ -117,4 +123,4 @@ class CustomModel(nn.Module):
       x = self.relu(x)
       x = self.rnn(x)
 
-    return x
+    return torch.sigmoid(x)
