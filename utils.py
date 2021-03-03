@@ -114,3 +114,47 @@ def plot_curves(train_losses, train_accuracies, validation_losses, validation_ac
 
     plt.savefig('curves.pdf')
     plt.show()
+
+def replace_tuple_at_index(tup, ix, val):
+    lst = list(tup)
+    lst[ix] = val
+    return tuple(lst)
+
+def normalize_apnea_data(x, channel_axis=0, window_axis=1, sampling_axis=2):
+    '''
+    inputs:
+        - x (size: (n_signals, window_length, sampling_freq)): 
+        the array of n_signals PSG signals with sampling frequency sampling_freq (Hz)
+        over window_length seconds
+        - channel_axis (integer): ...
+        - window_axis (integer): ...
+        - sampling_axis (integer): ...
+        output:
+        - x_normalized (size: (n_signals, windown_length, max_order): the input array, normalized
+    '''
+    assert len(x.shape) == 3, "x should be a 3d array"
+    adapted_shape = replace_tuple_at_index((1,1,1), channel_axis, -1)
+    x_avg = np.mean(x, axis=(window_axis,sampling_axis)).reshape(adapted_shape)
+    x_std = np.std(x, axis=(window_axis,sampling_axis)).reshape(adapted_shape)
+    x_normalized = (x-x_avg) / x_std
+    return x_normalized
+
+def compute_FFT_features(x, max_order=-1, channel_axis=0, window_axis=1, sampling_axis=2):):
+    '''
+    inputs:
+        - x (size: (n_signals, window_length, sampling_freq)): 
+        the array of 8 PSG signals with sampling frequency 100Hz
+        over 90 seconds for nb_samples samples
+        - max_order (integer): the maximum order of Fourier coefficients considered
+        output:
+        - x_fft (size: (n_signals, windown_length, max_order): the representation of the sequence in the Fourier domain
+        truncated at max_order
+    '''
+    x_normalized = normalize_apnea_data(x, channel_axis, window_axis, sampling_axis)
+    x_fft = rfftn(x_normalized, axes=[sampling_axis])
+    if max_order == -1:
+        idxs = range(0,x_fft.shape[sampling_axis])
+    else:
+        idxs = range(0,max_order)
+    x_fft = np.take(x_fft, indices=idxs, axis=sampling_axis)
+    return x_fft

@@ -13,7 +13,7 @@ from pathlib import Path
 from sklearn.metrics import confusion_matrix, classification_report
 
 from models import create_model
-from dataset import SleepApneaDataModule
+from dataset import SleepApneaDataModule, EmbeddedDataModule
 from utils import open_config_file, train_model, evaluate_model, epoch_time, plot_curves
 
 parser = argparse.ArgumentParser()
@@ -26,7 +26,10 @@ for k, v in vars(params).items():
     print('%s: %s' % (str(k), str(v)))
 print('-------------- End ----------------')
 
-data_module = SleepApneaDataModule(params)
+if params.discrete_transform:
+    data_module = SleepApneaDataModule(params)
+else:
+    data_module = EmbeddedDataModule(params)
 data_module.setup()
 train_dataset, val_dataset = data_module.train_dataset, data_module.val_dataset
 train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=16, shuffle=False)
