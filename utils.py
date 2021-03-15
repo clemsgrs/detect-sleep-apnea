@@ -140,7 +140,7 @@ def normalize_apnea_data(x, channel_axis=0, window_axis=1, sampling_axis=2):
     x_normalized = (x-x_avg) / x_std
     return x_normalized
 
-def compute_FFT_features(x, max_order=-1, channel_axis=0, window_axis=1, sampling_axis=2):):
+def compute_FFT_features(x, max_order=-1, channel_axis=0, window_axis=1, sampling_axis=2):
     '''
     inputs:
         - x (size: (n_signals, window_length, sampling_freq)): 

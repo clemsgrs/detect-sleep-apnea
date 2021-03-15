@@ -29,9 +29,9 @@ class SleepApneaDataset(torch.utils.data.Dataset):
     self.signal_ids = p.signal_ids
     self.n_signal = len(signal_ids)
     self.seq_length = p.seq_length
-    self.signal_dim = p.signal_freq*p.seq_length
+    self.signal_dim = p.sampling_freq*p.seq_length
     self.sampling_freq = p.sampling_freq
-    self.use_conv2d = p.use_conv2d
+    self.use_conv = p.use_conv
     self.smooth_y = p.smooth_y
 
   def __len__(self):
@@ -45,7 +45,7 @@ class SleepApneaDataset(torch.utils.data.Dataset):
       signal_id = self.signal_ids[0]
       x = self.data_df.iloc[idx, 2+self.signal_dim*signal_id:2+self.signal_dim*(signal_id+1)].values
       ### STILL HAVE TO RE-WORK THE FOLLOWING LINES TO SUPPORT LSTM TRAINING
-      if self.use_conv2d:
+      if self.use_conv:
         x = np.expand_dims(x, 0)
         x = x.reshape(1, self.seq_length, self.sampling_freq)
         x = normalize_apnea_data(x)
@@ -71,7 +71,7 @@ class EmbeddedDataset(torch.utils.data.Dataset):
     self.target_df = target_df
     self.signal_ids = p.signal_ids
     self.n_signal = len(p.signal_ids)
-    self.signal_dim = p.signal_freq*p.seq_length
+    self.signal_dim = p.sampling_freq*p.seq_length
     self.sampling_freq = p.sampling_freq
     self.use_conv = p.use_conv
     self.discrete_transform_type = p.discrete_transform_type
@@ -92,7 +92,7 @@ class EmbeddedDataset(torch.utils.data.Dataset):
     if self.discrete_transform_type == 'fft':
       x = compute_FFT_features(x, max_order=self.max_order)
     else:
-      raise NotImplementedError, '"fft" is the only supported discrete transform atm'
+      raise NotImplementedError('"fft" is the only supported discrete transform atm')
     y = self.target_df[self.target_df['ID'] == sample_index].values[0][1:]
     if(self.smooth_y):
       y = binary_to_smooth(y)

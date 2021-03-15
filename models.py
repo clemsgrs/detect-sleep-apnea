@@ -105,7 +105,7 @@ class Conv1D(nn.Module):
     x = self.flatten(x)
     x = self.fc(x)
 
-  return x
+    return x
 
 
 class Conv2D(nn.Module):
