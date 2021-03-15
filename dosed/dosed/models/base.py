@@ -5,6 +5,7 @@ import shutil
 import numpy as np
 import torch
 import torch.nn as nn
+from tqdm import tqdm
 
 from ..utils import binary_to_array
 
@@ -77,7 +78,7 @@ class BaseNet(nn.Module):
 
         # List of dicts, to save predictions of each class per record
         predictions = {}
-        for record in inference_dataset.records:
+        for record in tqdm(inference_dataset.records):
             predictions[record] = []
             result = np.zeros((self.number_of_classes - 1,
                                inference_dataset.signals[record]["size"]))

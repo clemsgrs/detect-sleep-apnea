@@ -131,7 +131,7 @@ def normalize_apnea_data(x, channel_axis=0, window_axis=1, sampling_axis=2):
         - window_axis (integer): ...
         - sampling_axis (integer): ...
         output:
-        - x_normalized (size: (n_signals, windown_length, max_order): the input array, normalized
+        - x_normalized (size: (n_signals, windown_length, sampling_freq): the input array, normalized
     '''
     assert len(x.shape) == 3, "x should be a 3d array"
     adapted_shape = replace_tuple_at_index((1,1,1), channel_axis, -1)

@@ -8,7 +8,7 @@
     "tracking": "val_loss",
     "signal_ids": [0,1],
     "model": "conv",
-    "use_conv": true,
+    "use_conv2d": true,
     "discrete_transform": false,
     "discrete_transform_type": "fft",
     "kernel_sizes": [5,4,5],
