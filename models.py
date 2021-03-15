@@ -64,11 +64,15 @@ class Conv1D(nn.Module):
     self.conv_output_dim = p.conv_output_dim
     self.in_channels = len(p.signal_ids)
     self.ks = p.kernel_sizes
+    self.s = p.strides
+    self.use_maxpool = p.use_maxpool
+    self.use_avgpool = p.use_avgpool
     assert len(self.ks) == 3
 
-    self.conv1 = nn.Conv1d(self.in_channels, 16, self.ks[0])
-    self.conv2 = nn.Conv1d(16, 32, self.ks[1])
-    self.conv3 = nn.Conv1d(32, 64, self.ks[2])
+    self.conv1 = nn.Conv1d(self.in_channels, 16, self.ks[0], self.s[0])
+    self.conv2 = nn.Conv1d(16, 32, self.ks[1], self.s[1]
+    self.conv3 = nn.Conv1d(32, 64, self.ks[2], self.s[2])
+    
     self.maxpool = nn.MaxPool1d(10)
     self.avgpool = nn.AdaptiveAvgPool1d(100)
     self.dropout = nn.Dropout(p.dropout_p)
@@ -82,17 +86,20 @@ class Conv1D(nn.Module):
     x = self.conv1(x)
     x = self.relu(x)
     x = self.dropout(x)
-    x = self.maxpool(x)
+    if self.use_maxpool:
+      x = self.maxpool(x)
 
     x = self.conv2(x)
     x = self.relu(x)
     x = self.dropout(x)
-    x = self.maxpool(x)
+    if self.use_maxpool:
+      x = self.maxpool(x)
 
     x = self.conv3(x)
     x = self.relu(x)
     x = self.dropout(x)
-    x = self.avgpool(x)
+    if self.use_avgpool:
+      x = self.avgpool(x)
 
     x = self.flatten(x)
     x = self.fc(x)
