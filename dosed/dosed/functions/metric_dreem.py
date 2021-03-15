@@ -134,9 +134,9 @@ def format_predictions_for_scoring(mask, window_length=100):
 def custom_metric_function():
     """returns a function to calculate custom metric"""
   
-    def dreem_sleep_apnea_custom_metric(event_pred, event_true):
-        # event_true = format_predictions_for_scoring(y_pred)
-        # event_pred = format_predictions_for_scoring(y_true)
+    def dreem_sleep_apnea_custom_metric(y_pred, y_true):
+        event_true = format_predictions_for_scoring(y_pred)
+        event_pred = format_predictions_for_scoring(y_true)
         return compute_f1_score(event_pred, event_true)
 
     return dreem_sleep_apnea_custom_metric

@@ -61,8 +61,8 @@ def compute_metrics_dataset(
             # print(f'type(events): {type(events)}')
             # print(f'predicted_events: {predicted_events}')
             # print(f'events: {events}')
-            # events = from_start_duration_to_y(events)
-            # predicted_events = from_start_duration_to_y(predicted_events)
+            events = from_start_duration_to_y(events)
+            predicted_events = from_start_duration_to_y(predicted_events)
             
             # Compute_metrics(events, predicted_events, threshold)
             for metric in metrics.keys():
@@ -87,5 +87,5 @@ def from_start_duration_to_y(events):
         return y
     else:
         for i, (s,d) in enumerate(events):
-            y[s:s+d] = 1
+            y[s//100:s//100+d//100] = 1
         return y
