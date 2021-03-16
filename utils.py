@@ -57,7 +57,11 @@ def train_model(epoch, model, train_loader, optimizer, criterion, params):
             preds = model(signal)
             preds = preds.type(torch.FloatTensor).cpu()
             target = target.type(torch.FloatTensor).cpu()
+            weight = torch.ones(target.size(), dtype=torch.float64) + params.pen_apnea*target
             loss = criterion(preds, target)
+            loss = loss * weight
+            loss = loss.mean()
+
             acc = dreem_sleep_apnea_custom_metric((preds.detach()>0.5).float(), (target.detach()>pow(10,-5)).float())
 
             loss.backward()
@@ -91,7 +95,10 @@ def evaluate_model(epoch, model, val_loader, criterion, params):
                 preds = model(signal)
                 preds = preds.type(torch.FloatTensor).cpu()
                 target = target.type(torch.FloatTensor).cpu()
+                weight = torch.ones(target.size(), dtype=torch.float64) + params.pen_apnea*target
                 loss = criterion(preds, target)
+                loss = loss * weight
+                loss = loss.mean()
                 acc = dreem_sleep_apnea_custom_metric((preds.detach()>0.5).float(), (target.detach()>pow(10,-5)).float())
 
                 epoch_loss += loss.item()
@@ -121,7 +128,7 @@ def test_model(model, test_loader, params, threshold=0.5):
                 preds = preds.type(torch.FloatTensor).cpu()
                 sample_index = sample_index.item()
                 preds_dict[int(sample_index)] = [int(x>threshold) for x in preds.tolist()]
-    
+
     preds_df = format_prediction_to_submission_canvas(preds_dict)
     return preds_df
 
@@ -160,7 +167,7 @@ def replace_tuple_at_index(tup, ix, val):
 def normalize_apnea_data(x, channel_axis=0, window_axis=1, sampling_axis=2):
     '''
     inputs:
-        - x (size: (n_signals, window_length, sampling_freq)): 
+        - x (size: (n_signals, window_length, sampling_freq)):
         the array of n_signals PSG signals with sampling frequency sampling_freq (Hz)
         over window_length seconds
         - channel_axis (integer): ...
@@ -180,7 +187,7 @@ def normalize_apnea_data(x, channel_axis=0, window_axis=1, sampling_axis=2):
 def compute_FFT_features(x, max_order=-1, channel_axis=0, window_axis=1, sampling_axis=2):
     '''
     inputs:
-        - x (size: (n_signals, window_length, sampling_freq)): 
+        - x (size: (n_signals, window_length, sampling_freq)):
         the array of 8 PSG signals with sampling frequency 100Hz
         over 90 seconds for nb_samples samples
         - max_order (integer): the maximum order of Fourier coefficients considered

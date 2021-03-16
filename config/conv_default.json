@@ -8,7 +8,7 @@
     "test_batch_size": 1,
     "eval_every": 1,
     "tracking": "val_loss",
-    "signal_ids": [1],
+    "signal_ids": [0,1],
     "model": "lstm",
     "use_conv": true,
     "discrete_transform": false,
@@ -23,12 +23,13 @@
     "sampling_freq": 100,
     "bidirectional": true,
     "n_layers": 3,
-    "hidden_dim": 256,
+    "hidden_dim": 128,
     "output_dim": 90,
     "dropout_p": 0.1,
     "shuffle": true,
     "checkpoint_dir": "checkpoints",
     "result_dir": "results",
     "save_csv": false,
-    "smooth_y": false
+    "smooth_y": true,
+    "pen_apnea": 3
 }
