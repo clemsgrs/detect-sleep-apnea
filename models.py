@@ -185,5 +185,6 @@ class CustomModel(nn.Module):
     if self.model == 'lstm':
       x = self.relu(x)
       x = self.rnn(x)
+      x = x.squeeze()
 
     return torch.sigmoid(x)
