@@ -42,22 +42,13 @@ class SleepApneaDataset(torch.utils.data.Dataset):
 
     sample_index = self.data_df.iloc[idx, 0]
     subject_index = self.data_df.iloc[idx, 1]
-    if self.n_signal == 1:
-      signal_id = self.signal_ids[0]
-      x = self.data_df.iloc[idx, 2+self.signal_dim*signal_id:2+self.signal_dim*(signal_id+1)].values
-      ### STILL HAVE TO RE-WORK THE FOLLOWING LINES TO SUPPORT LSTM TRAINING
-      if self.use_conv:
-        x = np.expand_dims(x, 0)
-        x = x.reshape(1, self.seq_length, self.sampling_freq)
-        x = normalize_apnea_data(x)
-      else:
-        x = x.reshape(-1, self.sampling_freq)
-      ###
-    else:
-      x = np.zeros((self.n_signal, self.signal_dim))
-      for i, signal_id in enumerate(self.signal_ids):
-        x[i] = self.data_df.iloc[idx, 2+self.signal_dim*signal_id:2+self.signal_dim*(signal_id+1)].values
-      ### MAY NEED TO ADD A LITTLE SOMETHING HERE TO ALLOW LSTM TRAINING
+
+    x = np.zeros((self.n_signal, self.signal_dim))
+    for i, signal_id in enumerate(self.signal_ids):
+      x[i] = self.data_df.iloc[idx, 2+self.signal_dim*signal_id:2+self.signal_dim*(signal_id+1)].values
+    x = x.reshape(self.n_signal, self.seq_length, self.sampling_freq)
+    x = normalize_apnea_data(x)
+    
     if self.test:
       return x, sample_index, subject_index
     else:

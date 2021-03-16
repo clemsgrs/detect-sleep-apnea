@@ -83,6 +83,7 @@ print('Beginning testing...')
 test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=1, shuffle=False)
 best_model = create_model(params)
 best_model.load_state_dict(torch.load('best_model.pt'))
+best_model = best_model.cuda()
 best_model.eval()
 
 test_predictions = test_model(best_model, test_loader, params, threshold=0.5)
