@@ -34,26 +34,31 @@ class LSTM(nn.Module):
                       hidden_size=p.hidden_dim,
                       num_layers=p.n_layers,
                       bidirectional=p.bidirectional,
-                      dropout=p.dropout_p)
+                      dropout=p.dropout_p,
+                      batch_first=True)
 
-    fc_input_dim = 2*p.hidden_dim if self.bidirectional else p.hidden_dim
-    self.fc = nn.Linear(fc_input_dim, p.output_dim)
+    conv_input_dim = 2*p.hidden_dim if self.bidirectional else p.hidden_dim
+    self.conv = nn.Conv2d(conv_input_dim, 1, kernel_size=(1,conv_input_dim))
     self.dropout = nn.Dropout(p.dropout_p)
 
   def forward(self, x):
 
-    # x should be (seq_len, batch, input_size)
-    x = x.permute(1,0,2)
+    # as batch_first = True, x is expected to be (batch, seq_len, input_size)
+    # x = x.permute(1,0,2)
     output, (hidden, cell) = self.rnn(x)
-
-    if self.bidirectional:
-      hidden = self.dropout(torch.cat((hidden[-2,:,:], hidden[-1,:,:]), dim=1))
-    else:
-      hidden = self.dropout(hidden[-1,:,:])
+    
+    # output is (batch, seq_length, conv_input_dim)
+    # if self.bidirectional:
+    #   hidden = self.dropout(torch.cat((hidden[-2,:,:], hidden[-1,:,:]), dim=1))
+    # else:
+    #   hidden = self.dropout(hidden[-1,:,:])
 
     # hidden = [batch size, hid dim * num directions]
+    # x = x.permute(1,0,2)
+    x = x.unsqueeze(1)
+    x = self.conv(x)
 
-    return self.fc(hidden)
+    return x
 
 class Conv1D(nn.Module):
 
@@ -178,7 +183,6 @@ class CustomModel(nn.Module):
     x = self.conv(x)
     
     if self.model == 'lstm':
-      # x = x.reshape(x.shape[0], self.seq_length, self.conv_output_dim)
       x = self.relu(x)
       x = self.rnn(x)
 

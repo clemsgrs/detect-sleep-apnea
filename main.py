@@ -27,9 +27,9 @@ for k, v in vars(params).items():
 print('-------------- End ----------------')
 
 if params.discrete_transform:
-    data_module = SleepApneaDataModule(params)
-else:
     data_module = EmbeddedDataModule(params)
+else:
+    data_module = SleepApneaDataModule(params)
 data_module.setup()
 train_dataset, val_dataset = data_module.train_dataset, data_module.val_dataset
 train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=16, shuffle=False)
