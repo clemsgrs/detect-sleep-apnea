@@ -38,7 +38,7 @@ class LSTM(nn.Module):
                       batch_first=True)
 
     conv_input_dim = 2*p.hidden_dim if self.bidirectional else p.hidden_dim
-    self.conv = nn.Conv2d(conv_input_dim, 1, kernel_size=(1,conv_input_dim))
+    self.conv = nn.Conv2d(1, 1, kernel_size=(1,conv_input_dim))
     self.dropout = nn.Dropout(p.dropout_p)
 
   def forward(self, x):
