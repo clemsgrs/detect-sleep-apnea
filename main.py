@@ -14,7 +14,7 @@ from sklearn.metrics import confusion_matrix, classification_report
 
 from models import create_model
 from dataset import SleepApneaDataModule, EmbeddedDataModule
-from utils import open_config_file, train_model, evaluate_model, epoch_time, plot_curves
+from utils import open_config_file, train_model, evaluate_model, test_model, epoch_time, plot_curves
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--config', type=str, default="config/default.json", metavar='N', help='config file')
@@ -78,3 +78,14 @@ for epoch in range(params.nepochs):
     print(f'Val loss: {np.round(valid_loss,6)} \t Val acc: {np.round(valid_acc,4)}\n')
 
 plot_curves(train_losses, train_accuracies, val_losses, val_accuracies, params)
+
+best_model = create_model(params)
+best_model = best_model.load_state_dict(torch.load('best_model.pt'))
+best_model.eval()
+
+test_predictions = test_model(best_model, test_loader, params, threshold=0.5)
+test_result_list = []
+for sample_id, pred in test_predictions.items():
+    test_result_list.append([sample_id] + pred)
+test_result_df = pd.DataFrame(test_result_list, columns=['ID']+[f'y_{i}' for i in range(90)])
+test_result_df.to_csv('test_predictions.csv', index=False)

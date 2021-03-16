@@ -65,7 +65,7 @@ class SleepApneaDataset(torch.utils.data.Dataset):
 
 class EmbeddedDataset(torch.utils.data.Dataset):
 
-  def __init__(self, data_df, target_df, p):
+  def __init__(self, data_df, target_df=None, p=None):
 
     self.data_df = data_df
     self.target_df = target_df
@@ -77,6 +77,7 @@ class EmbeddedDataset(torch.utils.data.Dataset):
     self.discrete_transform_type = p.discrete_transform_type
     self.max_order = p.max_order
     self.smooth_y = p.smooth_y
+    self.test = (target_df == None)
 
   def __len__(self):
     return len(self.data_df)
@@ -93,10 +94,13 @@ class EmbeddedDataset(torch.utils.data.Dataset):
       x = compute_FFT_features(x, max_order=self.max_order)
     else:
       raise NotImplementedError('"fft" is the only supported discrete transform atm')
-    y = self.target_df[self.target_df['ID'] == sample_index].values[0][1:]
-    if(self.smooth_y):
-      y = binary_to_smooth(y)
-    return x, y
+    if self.test:
+      return x, sample_index, subject_index
+    else:
+      y = self.target_df[self.target_df['ID'] == sample_index].values[0][1:]
+      if(self.smooth_y):
+        y = binary_to_smooth(y)
+      return x, y
 
 class SleepApneaDataModule():
 
@@ -105,7 +109,8 @@ class SleepApneaDataModule():
         self.save_csv = p.save_csv
         self.signal_ids = p.signal_ids
         self.data_dir = p.data_dir
-        self.data_file = p.data_file
+        self.train_data_file = p.train_data_file
+        self.test_data_file = p.test_data_file
         self.target_file = p.target_file
         self.seq_length = p.seq_length
         self.use_conv = p.use_conv
@@ -124,7 +129,7 @@ class SleepApneaDataModule():
             val_df = pd.read_csv(Path(self.data_dir, 'val.csv'))
             print(f'...done.')
         else:
-            train_df = pd.DataFrame(np.array(h5py.File(Path(self.data_dir, self.data_file), mode='r')['data']))
+            train_df = pd.DataFrame(np.array(h5py.File(Path(self.data_dir, self.train_data_file), mode='r')['data']))
             train_df, val_df = train_test_split(train_df, test_size=0.3)
             if self.save_csv:
                 train_df.to_csv(Path(self.data_dir, f'train.csv'), index=False)
@@ -132,20 +137,22 @@ class SleepApneaDataModule():
 
         target_df = pd.read_csv(Path(self.data_dir, self.target_file))
 
-        # if Path(self.data_dir, f'test.csv').exists():
-        #     print(f'Loading test slides from file...')
-        #     test_df = pd.read_csv(Path(self.data_dir, f'test.csv'))
-        #     print(f'...done.')
-        # else:
-        #     test_df = pd.read_csv(Path(self.data_dir, 'test', 'test_data.csv'))
-        #     test_df = self.tile_dataframe(test_df, phase='test')
-        #     test_df.to_csv(Path(self.data_dir, f'test.csv'), index=False)
+        if Path(self.data_dir, f'test.csv').exists():
+            print(f'Loading test data from file...')
+            test_df = pd.read_csv(Path(self.data_dir, f'test.csv'))
+            print(f'...done.')
+        else:
+            test_df = pd.DataFrame(np.array(h5py.File(Path(self.data_dir, self.test_data_file), mode='r')['data']))
+            if self.save_csv:
+                test_df.to_csv(Path(self.data_dir, f'test.csv'), index=False)
 
         train_df = train_df.reset_index(drop=True)
         val_df = val_df.reset_index(drop=True)
-        self.train_dataset, self.val_dataset = (
+        test_df = test_df.reset_index(drop=True)
+        self.train_dataset, self.val_dataset, self.test_dataset = (
           SleepApneaDataset(train_df, target_df, self.p),
-          SleepApneaDataset(val_df, target_df, self.p)
+          SleepApneaDataset(val_df, target_df, self.p),
+          SleepApneaDataset(test_df, self.p)
         )
 
 class EmbeddedDataModule():
@@ -182,18 +189,20 @@ class EmbeddedDataModule():
 
         target_df = pd.read_csv(Path(self.data_dir, self.target_file))
 
-        # if Path(self.data_dir, f'test.csv').exists():
-        #     print(f'Loading test slides from file...')
-        #     test_df = pd.read_csv(Path(self.data_dir, f'test.csv'))
-        #     print(f'...done.')
-        # else:
-        #     test_df = pd.read_csv(Path(self.data_dir, 'test', 'test_data.csv'))
-        #     test_df = self.tile_dataframe(test_df, phase='test')
-        #     test_df.to_csv(Path(self.data_dir, f'test.csv'), index=False)
+        if Path(self.data_dir, f'test.csv').exists():
+            print(f'Loading test data from file...')
+            test_df = pd.read_csv(Path(self.data_dir, f'test.csv'))
+            print(f'...done.')
+        else:
+            test_df = pd.DataFrame(np.array(h5py.File(Path(self.data_dir, self.test_data_file), mode='r')['data']))
+            if self.save_csv:
+                test_df.to_csv(Path(self.data_dir, f'test.csv'), index=False)
 
         train_df = train_df.reset_index(drop=True)
         val_df = val_df.reset_index(drop=True)
+        test_df = test_df.reset_index(drop=True)
         self.train_dataset, self.val_dataset = (
           EmbeddedDataset(train_df, target_df, self.p),
-          EmbeddedDataset(val_df, target_df, self.p)
+          EmbeddedDataset(val_df, target_df, self.p),
+          EmbeddedDataset(test_df, target_df=None, self.p)
         )

@@ -55,7 +55,7 @@ class LSTM(nn.Module):
 
     # hidden = [batch size, hid dim * num directions]
     # x = x.permute(1,0,2)
-    x = x.unsqueeze(1)
+    x = output.unsqueeze(1)
     x = self.conv(x)
 
     return x

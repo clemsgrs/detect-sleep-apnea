@@ -46,7 +46,7 @@ def train_model(epoch, model, train_loader, optimizer, criterion, params):
             signal = signal.type(torch.FloatTensor)
             signal, target = signal.cuda(), target.cuda()
 
-            preds = model(signal).squeeze(1)
+            preds = model(signal)
             preds = preds.type(torch.FloatTensor).cpu()
             target = target.type(torch.FloatTensor).cpu()
             loss = criterion(preds, target)
@@ -59,7 +59,6 @@ def train_model(epoch, model, train_loader, optimizer, criterion, params):
             epoch_acc += acc
 
     return epoch_loss / len(train_loader), epoch_acc / len(train_loader)
-    # return epoch_loss / len(train_loader)
 
 
 def evaluate_model(epoch, model, val_loader, criterion, params):
@@ -81,7 +80,7 @@ def evaluate_model(epoch, model, val_loader, criterion, params):
                 signal = signal.type(torch.FloatTensor)
                 signal, target = signal.cuda(), target.cuda()
 
-                preds = model(signal).squeeze(1)
+                preds = model(signal)
                 preds = preds.type(torch.FloatTensor).cpu()
                 target = target.type(torch.FloatTensor).cpu()
                 loss = criterion(preds, target)
@@ -91,7 +90,31 @@ def evaluate_model(epoch, model, val_loader, criterion, params):
                 epoch_acc += acc
 
     return epoch_loss / len(val_loader), epoch_acc / len(val_loader)
-    # return epoch_loss / len(val_loader)
+
+
+def test_model(model, test_loader, params, threshold=0.5):
+
+    model.eval()
+    preds_dict = {}
+
+    with tqdm(test_loader,
+             desc=(f'Test: '),
+             unit=' patient',
+             ncols=80,
+             unit_scale=params.test_batch_size) as t:
+
+        with torch.no_grad():
+
+            for i, (signal, sample_index, subject_index) in enumerate(t):
+
+                signal = signal.type(torch.FloatTensor)
+                signal = signal.cuda()
+                preds = model(signal)
+                preds = preds.type(torch.FloatTensor).cpu()
+                preds_dict[f'{sample_index}'] = [int(x>threshold) for x in preds.tolist()]
+
+    return preds_dict
+
 
 def plot_curves(train_losses, train_accuracies, validation_losses, validation_accuracies, params):
 
@@ -117,10 +140,12 @@ def plot_curves(train_losses, train_accuracies, validation_losses, validation_ac
     plt.savefig('curves.pdf')
     plt.show()
 
+
 def replace_tuple_at_index(tup, ix, val):
     lst = list(tup)
     lst[ix] = val
     return tuple(lst)
+
 
 def normalize_apnea_data(x, channel_axis=0, window_axis=1, sampling_axis=2):
     '''
@@ -140,6 +165,7 @@ def normalize_apnea_data(x, channel_axis=0, window_axis=1, sampling_axis=2):
     x_std = np.std(x, axis=(window_axis,sampling_axis)).reshape(adapted_shape)
     x_normalized = (x-x_avg) / x_std
     return x_normalized
+
 
 def compute_FFT_features(x, max_order=-1, channel_axis=0, window_axis=1, sampling_axis=2):
     '''
