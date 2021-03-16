@@ -28,6 +28,14 @@ def epoch_time(start_time, end_time):
   return elapsed_mins, elapsed_secs
 
 
+def format_prediction_to_submission_canvas(prediction_dict):
+    test_result_list = []
+    for sample_id, pred in test_predictions.items():
+        test_result_list.append([sample_id] + pred)
+    test_result_df = pd.DataFrame(test_result_list, columns=['ID']+[f'y_{i}' for i in range(90)])
+    return test_result_df
+
+
 def train_model(epoch, model, train_loader, optimizer, criterion, params):
 
     epoch_loss = 0
@@ -113,8 +121,9 @@ def test_model(model, test_loader, params, threshold=0.5):
                 preds = preds.type(torch.FloatTensor).cpu()
                 sample_index = sample_index.item()
                 preds_dict[int(sample_index)] = [int(x>threshold) for x in preds.tolist()]
-
-    return preds_dict
+    
+    preds_df = format_prediction_to_submission_canvas(preds_dict)
+    return preds_df
 
 
 def plot_curves(train_losses, train_accuracies, validation_losses, validation_accuracies, params):
