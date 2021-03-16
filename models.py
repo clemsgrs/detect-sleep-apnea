@@ -156,7 +156,7 @@ class Conv2D(nn.Module):
     x = self.relu(x)
 
     # for good RNN integration, x should be (batch, seq_len, conv_output_dim)
-    x = x.squeeze()
+    x = x.squeeze(1)
 
     return x
 

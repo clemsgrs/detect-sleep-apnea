@@ -31,9 +31,9 @@ if params.discrete_transform:
 else:
     data_module = SleepApneaDataModule(params)
 data_module.setup()
-train_dataset, val_dataset = data_module.train_dataset, data_module.val_dataset
-train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=16, shuffle=False)
-val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=16, shuffle=False)
+train_dataset, val_dataset, test_dataset = data_module.train_dataset, data_module.val_dataset, data_module.test_dataset
+train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=params.batch_size, shuffle=False)
+val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=params.batch_size, shuffle=False)
 
 model = create_model(params)
 optimizer = optim.Adam(model.parameters())
@@ -79,13 +79,16 @@ for epoch in range(params.nepochs):
 
 plot_curves(train_losses, train_accuracies, val_losses, val_accuracies, params)
 
+print('Beginning testing...')
+test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=1, shuffle=False)
 best_model = create_model(params)
-best_model = best_model.load_state_dict(torch.load('best_model.pt'))
+best_model.load_state_dict(torch.load('best_model.pt'))
 best_model.eval()
 
 test_predictions = test_model(best_model, test_loader, params, threshold=0.5)
 test_result_list = []
-for sample_id, pred in test_predictions.items():
+for i, (sample_id, pred) in enumerate(test_predictions.items()):
     test_result_list.append([sample_id] + pred)
 test_result_df = pd.DataFrame(test_result_list, columns=['ID']+[f'y_{i}' for i in range(90)])
 test_result_df.to_csv('test_predictions.csv', index=False)
+print('done')

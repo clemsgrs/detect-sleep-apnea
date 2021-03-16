@@ -111,7 +111,8 @@ def test_model(model, test_loader, params, threshold=0.5):
                 signal = signal.cuda()
                 preds = model(signal)
                 preds = preds.type(torch.FloatTensor).cpu()
-                preds_dict[f'{sample_index}'] = [int(x>threshold) for x in preds.tolist()]
+                sample_index = sample_index.item()
+                preds_dict[int(sample_index)] = [int(x>threshold) for x in preds.tolist()]
 
     return preds_dict
 
