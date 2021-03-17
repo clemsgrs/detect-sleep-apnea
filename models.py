@@ -69,9 +69,9 @@ class Conv2D(nn.Module):
     self.conv_output_dim = p.conv_output_dim
     self.in_channels = len(p.signal_ids)
 
-    self.conv1 = nn.Conv2d(self.in_channels, 4, kernel_size=(1,50))
-    self.conv2 = nn.Conv2d(4, 8, kernel_size=(1,25))
-    self.conv3 = nn.Conv2d(8, 16, kernel_size=(1,13))
+    self.conv1 = nn.Conv2d(self.in_channels, 4, kernel_size=(1,10))
+    self.conv2 = nn.Conv2d(4, 8, kernel_size=(1,5))
+    self.conv3 = nn.Conv2d(8, 16, kernel_size=(1,3))
     self.conv4 = nn.Conv2d(16, 1, kernel_size=(1,1))
     
     self.maxpool = nn.MaxPool2d(kernel_size=(1,2))
@@ -84,10 +84,12 @@ class Conv2D(nn.Module):
     x = self.conv1(x)
     x = self.relu(x)
     x = self.dropout(x)
+    x = self.maxpool(x)
 
     x = self.conv2(x)
     x = self.relu(x)
     x = self.dropout(x)
+    x = self.maxpool(x)
 
     x = self.conv3(x)
     x = self.relu(x)
