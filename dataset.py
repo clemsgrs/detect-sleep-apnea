@@ -31,7 +31,6 @@ class SleepApneaDataset(torch.utils.data.Dataset):
     self.seq_length = p.seq_length
     self.signal_dim = p.sampling_freq*p.seq_length
     self.sampling_freq = p.sampling_freq
-    self.use_conv = p.use_conv
     self.smooth_y = p.smooth_y
     self.test = test
 
@@ -68,7 +67,6 @@ class EmbeddedDataset(torch.utils.data.Dataset):
     self.n_signal = len(p.signal_ids)
     self.signal_dim = p.sampling_freq*p.seq_length
     self.sampling_freq = p.sampling_freq
-    self.use_conv = p.use_conv
     self.discrete_transform_type = p.discrete_transform_type
     self.max_order = p.max_order
     self.smooth_y = p.smooth_y
@@ -102,14 +100,10 @@ class SleepApneaDataModule():
     def __init__(self, p):
 
         self.save_csv = p.save_csv
-        self.signal_ids = p.signal_ids
         self.data_dir = p.data_dir
         self.train_data_file = p.train_data_file
         self.test_data_file = p.test_data_file
         self.target_file = p.target_file
-        self.seq_length = p.seq_length
-        self.use_conv = p.use_conv
-        self.smooth_y = p.smooth_y
         self.p = p
 
     def setup(self):
@@ -155,13 +149,10 @@ class EmbeddedDataModule():
     def __init__(self, p):
 
         self.save_csv = p.save_csv
-        self.signal_ids = p.signal_ids
         self.data_dir = p.data_dir
-        self.data_file = p.data_file
+        self.train_data_file = p.train_data_file
+        self.test_data_file = p.test_data_file
         self.target_file = p.target_file
-        self.seq_length = p.seq_length
-        self.use_conv = p.use_conv
-        self.smooth_y = p.smooth_y
         self.p = p
 
     def setup(self):
@@ -176,7 +167,7 @@ class EmbeddedDataModule():
             val_df = pd.read_csv(Path(self.data_dir, 'val.csv'))
             print(f'...done.')
         else:
-            train_df = pd.DataFrame(np.array(h5py.File(Path(self.data_dir, self.data_file), mode='r')['data']))
+            train_df = pd.DataFrame(np.array(h5py.File(Path(self.data_dir, self.train_data_file), mode='r')['data']))
             train_df, val_df = train_test_split(train_df, test_size=0.3)
             if self.save_csv:
                 train_df.to_csv(Path(self.data_dir, f'train.csv'), index=False)
