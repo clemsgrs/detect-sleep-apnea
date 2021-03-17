@@ -58,7 +58,7 @@ def train_model(epoch, model, train_loader, optimizer, criterion, params):
             preds = preds.type(torch.FloatTensor).cpu()
             target = target.type(torch.FloatTensor).cpu()
             loss = criterion(preds, target)
-            if params.loss_weighthing:
+            if params.loss_weighting:
                 weight = torch.ones(target.size(), dtype=torch.float64) + params.pen_apnea*target
                 loss = loss * weight
                 loss = loss.mean()
@@ -97,7 +97,7 @@ def evaluate_model(epoch, model, val_loader, criterion, params):
                 preds = preds.type(torch.FloatTensor).cpu()
                 target = target.type(torch.FloatTensor).cpu()
                 loss = criterion(preds, target)
-                if params.loss_weighthing:
+                if params.loss_weighting:
                     weight = torch.ones(target.size(), dtype=torch.float64) + params.pen_apnea*target
                     loss = loss * weight
                     loss = loss.mean()

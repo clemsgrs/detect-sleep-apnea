@@ -42,7 +42,7 @@ model = create_model(params)
 optimizer = optim.Adam(model.parameters())
 model = model.cuda()
 
-if params.loss_weighthing:
+if params.loss_weighting:
     criterion = nn.BCELoss(reduction='none')
 else:
     criterion = nn.BCELoss()
