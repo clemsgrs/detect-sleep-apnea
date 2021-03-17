@@ -108,7 +108,7 @@ class LSTM(nn.Module):
     super().__init__()
 
     self.bidirectional = p.bidirectional
-
+    
     self.rnn = nn.LSTM(input_size=p.input_dim,
                       hidden_size=p.hidden_dim,
                       num_layers=p.n_layers,
@@ -120,23 +120,19 @@ class LSTM(nn.Module):
     self.conv = nn.Conv2d(1, 1, kernel_size=(1,conv_input_dim))
     self.fc = nn.Linear(in_features=conv_input_dim, out_features=1)
     self.dropout = nn.Dropout(p.dropout_p)
+    self.last_layer = p.last_layer
 
   def forward(self, x):
 
-    # as batch_first = True, x is expected to be (batch, seq_len, input_size)
-    # x = x.permute(1,0,2)
     x, (hidden, cell) = self.rnn(x)
     
-    # x is (batch, seq_length, conv_input_dim)
-    # if self.bidirectional:
-    #   hidden = self.dropout(torch.cat((hidden[-2,:,:], hidden[-1,:,:]), dim=1))
-    # else:
-    #   hidden = self.dropout(hidden[-1,:,:])
-
-    # hidden = [batch size, hid dim * num directions]
-    # x = x.permute(1,0,2)
-    x = x.unsqueeze(1)
-    x = self.conv(x)
+    if self.last_layer == 'fc':
+      x = self.fc(x)
+    elif self.last_layer == 'conv':
+      x = x.unsqueeze(1)
+      x = self.conv(x)
+    else:
+      ValueError(f'{self.last_layer} not supported yet')
     x = x.squeeze()
 
     return torch.sigmoid(x)
@@ -148,10 +144,9 @@ class BERT(nn.Module):
 
     super().__init__()
     
-    hidden_size = p.input_dim * len(p.signal_ids)
     self.bert_config = transformers.BertConfig(
       vocab_size=1, 
-      hidden_size=hidden_size,
+      hidden_size=p.input_dim,
       num_hidden_layers=p.n_layers,
       num_attention_heads=p.n_heads,
       intermediate_size=p.ffn_dim,
@@ -162,16 +157,22 @@ class BERT(nn.Module):
     )
 
     self.bert = BertModel(self.bert_config)
-    self.conv = nn.Conv2d(1, 1, kernel_size=(1,hidden_size))
+    self.conv = nn.Conv2d(1, 1, kernel_size=(1,p.input_dim))
     self.fc = nn.Linear(in_features=p.input_dim, out_features=1)
     self.relu = nn.ReLU()
+    self.last_layer = p.last_layer
 
   def forward(self, x):
 
     x = self.bert(inputs_embeds=x)
     x = x['last_hidden_state']
-    x = x.unsqueeze(1)
-    x = self.conv(x)
+    if self.last_layer == 'fc':
+      x = self.fc(x)
+    elif self.last_layer == 'conv':
+      x = x.unsqueeze(1)
+      x = self.conv(x)
+    else:
+      ValueError(f'{self.last_layer} not supported yet')
     x = x.squeeze()
 
     return torch.sigmoid(x)
@@ -222,8 +223,10 @@ def create_model(p):
         print(f'{p.model} was created: {p.encoder}+{p.decoder}\n')
       else:
         if p.model == 'lstm':
+          p.input_dim = p.input_dim * len(p.signal_ids)
           model = LSTM(p)
         elif p.model == 'transformer':
+          p.input_dim = p.input_dim * len(p.signal_ids)
           model = BERT(p)
         elif p.model == 'conv':
           model = Conv1D(p)

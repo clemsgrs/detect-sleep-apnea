@@ -13,6 +13,7 @@
     "model": "encoder_decoder",
     "encoder": "conv2d",
     "decoder": "lstm",
+    "last_layer": "conv",
     "discrete_transform": false,
     "discrete_transform_type": "fft",
     "kernel_sizes": [5,4,5],

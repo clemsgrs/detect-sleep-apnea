@@ -13,6 +13,7 @@
     "model": "encoder_decoder",
     "encoder": "conv2d",
     "decoder": "transformer",
+    "last_layer": "conv",
     "discrete_transform": false,
     "discrete_transform_type": "fft",
     "conv_output_dim": 30,
