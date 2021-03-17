@@ -136,7 +136,7 @@ class LSTM(nn.Module):
     # hidden = [batch size, hid dim * num directions]
     # x = x.permute(1,0,2)
     x = x.unsqueeze(1)
-    x = self.fc(x)
+    x = self.conv(x)
     x = x.squeeze()
 
     return torch.sigmoid(x)
@@ -162,6 +162,7 @@ class BERT(nn.Module):
     )
 
     self.bert = BertModel(self.bert_config)
+    self.conv = nn.Conv2d(1, 1, kernel_size=(1,hidden_size))
     self.fc = nn.Linear(in_features=p.input_dim, out_features=1)
     self.relu = nn.ReLU()
 
@@ -169,7 +170,7 @@ class BERT(nn.Module):
 
     x = self.bert(inputs_embeds=x)
     x = x['last_hidden_state']
-    x = self.fc(x)
+    x = self.conv(x)
     x = x.squeeze()
 
     return torch.sigmoid(x)
