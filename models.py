@@ -68,11 +68,6 @@ class Conv2D(nn.Module):
     self.seq_length = p.seq_length
     self.conv_output_dim = p.conv_output_dim
     self.in_channels = len(p.signal_ids)
-    self.ks = p.kernel_sizes
-    self.s = p.strides
-    self.use_maxpool = p.use_maxpool
-    self.use_avgpool = p.use_avgpool
-    assert len(self.ks) == 3
 
     self.conv1 = nn.Conv2d(self.in_channels, 4, kernel_size=(1,50))
     self.conv2 = nn.Conv2d(4, 8, kernel_size=(1,25))
