@@ -57,10 +57,11 @@ def train_model(epoch, model, train_loader, optimizer, criterion, params):
             preds = model(signal)
             preds = preds.type(torch.FloatTensor).cpu()
             target = target.type(torch.FloatTensor).cpu()
-            weight = torch.ones(target.size(), dtype=torch.float64) + params.pen_apnea*target
             loss = criterion(preds, target)
-            loss = loss * weight
-            loss = loss.mean()
+            if params.loss_weighthing:
+                weight = torch.ones(target.size(), dtype=torch.float64) + params.pen_apnea*target
+                loss = loss * weight
+                loss = loss.mean()
 
             acc = dreem_sleep_apnea_custom_metric((preds.detach()>0.5).float(), (target.detach()>pow(10,-5)).float())
 
@@ -95,10 +96,11 @@ def evaluate_model(epoch, model, val_loader, criterion, params):
                 preds = model(signal)
                 preds = preds.type(torch.FloatTensor).cpu()
                 target = target.type(torch.FloatTensor).cpu()
-                weight = torch.ones(target.size(), dtype=torch.float64) + params.pen_apnea*target
                 loss = criterion(preds, target)
-                loss = loss * weight
-                loss = loss.mean()
+                if params.loss_weighthing:
+                    weight = torch.ones(target.size(), dtype=torch.float64) + params.pen_apnea*target
+                    loss = loss * weight
+                    loss = loss.mean()
                 acc = dreem_sleep_apnea_custom_metric((preds.detach()>0.5).float(), (target.detach()>pow(10,-5)).float())
 
                 epoch_loss += loss.item()

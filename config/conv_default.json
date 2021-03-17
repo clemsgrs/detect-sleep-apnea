@@ -32,5 +32,6 @@
     "result_dir": "results",
     "save_csv": false,
     "smooth_y": true,
+    "loss_weighting": true,
     "pen_apnea": 3
 }

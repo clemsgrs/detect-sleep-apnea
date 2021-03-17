@@ -41,7 +41,11 @@ val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=params.batch_si
 model = create_model(params)
 optimizer = optim.Adam(model.parameters())
 model = model.cuda()
-criterion = nn.BCELoss(reduction='none')
+
+if params.loss_weighthing:
+    criterion = nn.BCELoss(reduction='none')
+else:
+    criterion = nn.BCELoss()
 criterion = criterion.cuda()
 
 best_valid_loss = float('inf')
