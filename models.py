@@ -170,6 +170,7 @@ class BERT(nn.Module):
 
     x = self.bert(inputs_embeds=x)
     x = x['last_hidden_state']
+    x = x.unsqueeze(1)
     x = self.conv(x)
     x = x.squeeze()
 
