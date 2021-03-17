@@ -12,7 +12,7 @@
     "model": "transformer",
     "discrete_transform": false,
     "discrete_transform_type": "fft",
-    "input_dim": 800,
+    "input_dim": 100,
     "seq_length": 90,
     "sampling_freq": 100,
     "output_dim": 90,

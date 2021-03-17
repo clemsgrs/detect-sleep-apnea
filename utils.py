@@ -30,7 +30,7 @@ def epoch_time(start_time, end_time):
 
 def format_prediction_to_submission_canvas(prediction_dict):
     test_result_list = []
-    for sample_id, pred in test_predictions.items():
+    for sample_id, pred in prediction_dict.items():
         test_result_list.append([sample_id] + pred)
     test_result_df = pd.DataFrame(test_result_list, columns=['ID']+[f'y_{i}' for i in range(90)])
     return test_result_df

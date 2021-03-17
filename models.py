@@ -137,8 +137,9 @@ class LSTM(nn.Module):
     # x = x.permute(1,0,2)
     x = x.unsqueeze(1)
     x = self.fc(x)
+    x = x.squeeze()
 
-    return x
+    return torch.sigmoid(x)
 
 
 class BERT(nn.Module):
@@ -146,10 +147,11 @@ class BERT(nn.Module):
   def __init__(self, p):
 
     super().__init__()
-
+    
+    hidden_size = p.input_dim * len(p.signal_ids)
     self.bert_config = transformers.BertConfig(
       vocab_size=1, 
-      hidden_size=p.input_dim,
+      hidden_size=hidden_size,
       num_hidden_layers=p.n_layers,
       num_attention_heads=p.n_heads,
       intermediate_size=p.ffn_dim,
@@ -168,8 +170,9 @@ class BERT(nn.Module):
     x = self.bert(inputs_embeds=x)
     x = x['last_hidden_state']
     x = self.fc(x)
+    x = x.squeeze()
 
-    return x
+    return torch.sigmoid(x)
 
 
 class EncoderDecoder(nn.Module):
@@ -202,9 +205,8 @@ class EncoderDecoder(nn.Module):
     x = self.encoder(x)
     x = self.relu(x)
     x = self.decoder(x)
-    x = x.squeeze()
 
-    return torch.sigmoid(x)
+    return x
 
 
 def create_model(p):

@@ -31,6 +31,7 @@ class SleepApneaDataset(torch.utils.data.Dataset):
     self.seq_length = p.seq_length
     self.signal_dim = p.sampling_freq*p.seq_length
     self.sampling_freq = p.sampling_freq
+    self.model = p.model
     self.smooth_y = p.smooth_y
     self.test = test
 
