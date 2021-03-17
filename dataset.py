@@ -47,6 +47,8 @@ class SleepApneaDataset(torch.utils.data.Dataset):
       x[i] = self.data_df.iloc[idx, 2+self.signal_dim*signal_id:2+self.signal_dim*(signal_id+1)].values
     x = x.reshape(self.n_signal, self.seq_length, self.sampling_freq)
     x = normalize_apnea_data(x)
+    if self.model in ['lstm', 'transformer']:
+      x = x.reshape(self.seq_length, self.sampling_freq*self.n_signal)
     
     if self.test:
       return x, sample_index, subject_index
@@ -94,6 +96,7 @@ class EmbeddedDataset(torch.utils.data.Dataset):
       if(self.smooth_y):
         y = binary_to_smooth(y)
       return x, y
+
 
 class SleepApneaDataModule():
 
@@ -143,6 +146,7 @@ class SleepApneaDataModule():
           SleepApneaDataset(val_df, target_df, self.p),
           SleepApneaDataset(test_df, None, self.p, test=True)
         )
+
 
 class EmbeddedDataModule():
 

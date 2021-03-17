@@ -10,7 +10,7 @@
     "tracking": "val_loss",
     "signal_ids": [1],
     "model": "encoder_decoder",
-    "encoder": "conv",
+    "encoder": "conv2d",
     "decoder": "lstm",
     "discrete_transform": false,
     "discrete_transform_type": "fft",
