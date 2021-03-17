@@ -1,64 +1,10 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import transformers
+from transformers import BertModel
 
-allowed_model_names = ['conv', 'rnn', 'lstm', 'gru', 'transformer']
-
-def create_model(p):
-
-    model = None
-    if p.model not in allowed_model_names:
-      raise ValueError(f'Model {p.model} not recognized')
-    else:
-      if p.use_conv:
-        model = CustomModel(p)
-      else:
-        if p.model == 'lstm':
-          model = LSTM(p)
-        elif p.model == 'conv':
-          model = Conv1D(p)
-
-    print(f'{p.model} was created\n')
-
-    return model
-
-
-class LSTM(nn.Module):
-  def __init__(self, p):
-
-    super().__init__()
-
-    self.bidirectional = p.bidirectional
-
-    self.rnn = nn.LSTM(input_size=p.input_dim,
-                      hidden_size=p.hidden_dim,
-                      num_layers=p.n_layers,
-                      bidirectional=p.bidirectional,
-                      dropout=p.dropout_p,
-                      batch_first=True)
-
-    conv_input_dim = 2*p.hidden_dim if self.bidirectional else p.hidden_dim
-    self.conv = nn.Conv2d(1, 1, kernel_size=(1,conv_input_dim))
-    self.dropout = nn.Dropout(p.dropout_p)
-
-  def forward(self, x):
-
-    # as batch_first = True, x is expected to be (batch, seq_len, input_size)
-    # x = x.permute(1,0,2)
-    output, (hidden, cell) = self.rnn(x)
-    
-    # output is (batch, seq_length, conv_input_dim)
-    # if self.bidirectional:
-    #   hidden = self.dropout(torch.cat((hidden[-2,:,:], hidden[-1,:,:]), dim=1))
-    # else:
-    #   hidden = self.dropout(hidden[-1,:,:])
-
-    # hidden = [batch size, hid dim * num directions]
-    # x = x.permute(1,0,2)
-    x = output.unsqueeze(1)
-    x = self.conv(x)
-
-    return x
+allowed_model_names = ['conv', 'rnn', 'lstm', 'gru', 'transformer', 'encoder_decoder']
 
 class Conv1D(nn.Module):
 
@@ -160,7 +106,78 @@ class Conv2D(nn.Module):
 
     return x
 
-class CustomModel(nn.Module):
+
+class LSTM(nn.Module):
+  def __init__(self, p):
+
+    super().__init__()
+
+    self.bidirectional = p.bidirectional
+
+    self.rnn = nn.LSTM(input_size=p.input_dim,
+                      hidden_size=p.hidden_dim,
+                      num_layers=p.n_layers,
+                      bidirectional=p.bidirectional,
+                      dropout=p.dropout_p,
+                      batch_first=True)
+
+    conv_input_dim = 2*p.hidden_dim if self.bidirectional else p.hidden_dim
+    self.conv = nn.Conv2d(1, 1, kernel_size=(1,conv_input_dim))
+    self.fc = nn.Linear(in_features=conv_input_dim, out_features=1)
+    self.dropout = nn.Dropout(p.dropout_p)
+
+  def forward(self, x):
+
+    # as batch_first = True, x is expected to be (batch, seq_len, input_size)
+    # x = x.permute(1,0,2)
+    x, (hidden, cell) = self.rnn(x)
+    
+    # x is (batch, seq_length, conv_input_dim)
+    # if self.bidirectional:
+    #   hidden = self.dropout(torch.cat((hidden[-2,:,:], hidden[-1,:,:]), dim=1))
+    # else:
+    #   hidden = self.dropout(hidden[-1,:,:])
+
+    # hidden = [batch size, hid dim * num directions]
+    # x = x.permute(1,0,2)
+    x = x.unsqueeze(1)
+    x = self.fc(x)
+
+    return x
+
+
+class BERT(nn.Module):
+
+  def __init__(self, p):
+
+    super().__init__()
+
+    self.bert_config = transformers.BertConfig(
+      vocab_size=1, 
+      hidden_size=p.input_dim,
+      num_hidden_layers=p.n_layers,
+      num_attention_heads=p.n_heads,
+      intermediate_size=p.ffn_dim,
+      hidden_dropout_prob=p.dropout_p,
+      attention_probs_dropout_prob=p.dropout_p,
+      max_position_embeddings=p.seq_length,
+      position_embedding_type='absolute'
+    )
+
+    self.bert = BertModel(self.bert_config)
+    self.fc = nn.Linear(in_features=p.input_dim, out_features=1)
+    self.relu = nn.ReLU()
+
+  def forward(self, x):
+
+    x = self.bert(inputs_embeds=x)
+    x = x['last_hidden_state']
+    x = self.fc(x)
+
+    return x
+
+
+class EncoderDecoder(nn.Module):
 
   def __init__(self, p):
 
@@ -169,22 +186,48 @@ class CustomModel(nn.Module):
     self.model = p.model
     self.seq_length = p.seq_length
     self.conv_output_dim = p.conv_output_dim
-    self.conv = Conv2D(p)
     self.relu = nn.ReLU()
+    
+    if p.encoder == 'conv2d':
+      self.encoder = Conv2D(p)
+    else:
+      raise ValueError(f'{p.encoder} not supported yet')
 
-    if p.model == 'lstm':
+    if p.decoder == 'lstm':
       p.input_dim = p.conv_output_dim
-      self.rnn = LSTM(p)
-    elif p.model != 'conv':
+      self.decoder = LSTM(p)
+    elif p.decoder == 'transformer':
+      p.input_dim = p.conv_output_dim
+      self.decoder = BERT(p)
+    elif p.decoder != 'conv':
       raise ValueError(f'{p.model} not supported yet')
 
   def forward(self, x):
 
-    x = self.conv(x)
-    
-    if self.model == 'lstm':
-      x = self.relu(x)
-      x = self.rnn(x)
-      x = x.squeeze()
+    x = self.encoder(x)
+    x = self.relu(x)
+    x = self.decoder(x)
+    x = x.squeeze(1)
 
     return torch.sigmoid(x)
+
+
+def create_model(p):
+
+    model = None
+    if p.model not in allowed_model_names:
+      raise ValueError(f'Model {p.model} not recognized')
+    else:
+      if p.model == 'encoder_decoder':
+        model = EncoderDecoder(p)
+        print(f'{p.model} was created: {p.encoder}+{p.decoder}\n')
+      else:
+        if p.model == 'lstm':
+          model = LSTM(p)
+        elif p.model == 'transformer':
+          model = BERT(p)
+        elif p.model == 'conv':
+          model = Conv1D(p)
+        print(f'{p.model} was created\n')
+    
+    return model
