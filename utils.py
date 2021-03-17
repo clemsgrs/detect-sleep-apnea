@@ -36,6 +36,9 @@ def format_prediction_to_submission_canvas(prediction_dict):
     test_result_df = pd.DataFrame(test_result_list, columns=['ID']+[f'y_{i}' for i in range(90)])
     return test_result_df
 
+# def compute_conv2d_output_dim(input_dim, kernels=[], strides=[], net='CMCMCC'):
+#     if net == 'CMCMCC':
+
 
 def train_model(epoch, model, train_loader, optimizer, criterion, params):
 
@@ -61,6 +64,7 @@ def train_model(epoch, model, train_loader, optimizer, criterion, params):
             loss = criterion(preds, target)
             if params.loss_weighting:
                 weight = torch.ones(target.size(), dtype=torch.float64) + params.pen_apnea*target
+                weight /= weight.sum(dim=1)
                 loss = loss * weight
                 loss = loss.mean()
 
@@ -100,6 +104,7 @@ def evaluate_model(epoch, model, val_loader, criterion, params):
                 loss = criterion(preds, target)
                 if params.loss_weighting:
                     weight = torch.ones(target.size(), dtype=torch.float64) + params.pen_apnea*target
+                    weight /= weight.sum(dim=1)
                     loss = loss * weight
                     loss = loss.mean()
                 acc = dreem_sleep_apnea_custom_metric((preds.detach()>0.5).float(), (target.detach()>pow(10,-5)).float())

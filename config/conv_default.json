@@ -19,7 +19,7 @@
     "strides": [5,4,5],
     "use_maxpool": false,
     "use_avgpool": false,
-    "conv_output_dim": 15,
+    "conv_output_dim": 30,
     "input_dim": 100,
     "seq_length": 90,
     "sampling_freq": 100,

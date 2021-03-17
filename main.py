@@ -57,13 +57,11 @@ train_accuracies, val_accuracies = [], []
 for epoch in range(params.nepochs):
 
     start_time = time.time()
-    # train_loss = train_model(epoch+1, model, train_loader, optimizer, criterion, params)
     train_loss, train_acc = train_model(epoch+1, model, train_loader, optimizer, criterion, params)
     train_losses.append(train_loss)
     train_accuracies.append(train_acc)
 
     if epoch % params.eval_every == 0:
-        # valid_loss = evaluate_model(epoch+1, model, val_loader, criterion, params)
         valid_loss, valid_acc = evaluate_model(epoch+1, model, val_loader, criterion, params)
         val_losses.append(valid_loss)
         val_accuracies.append(valid_acc)

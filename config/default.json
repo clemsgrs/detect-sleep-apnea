@@ -15,7 +15,7 @@
     "decoder": "lstm",
     "discrete_transform": false,
     "discrete_transform_type": "fft",
-    "conv_output_dim": 15,
+    "conv_output_dim": 30,
     "input_dim": 100,
     "seq_length": 90,
     "sampling_freq": 100,
