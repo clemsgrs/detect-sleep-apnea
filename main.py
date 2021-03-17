@@ -39,7 +39,7 @@ val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=params.batch_si
 ### TRAINING
 
 model = create_model(params)
-optimizer = optim.Adam(model.parameters())
+optimizer = optim.Adam(model.parameters(), lr=params.lr)
 model = model.cuda()
 
 if params.loss_weighting:
