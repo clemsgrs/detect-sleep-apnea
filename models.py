@@ -202,7 +202,7 @@ class EncoderDecoder(nn.Module):
     x = self.encoder(x)
     x = self.relu(x)
     x = self.decoder(x)
-    x = x.squeeze(1)
+    x = x.squeeze()
 
     return torch.sigmoid(x)
 
