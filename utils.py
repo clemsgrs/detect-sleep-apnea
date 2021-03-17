@@ -64,7 +64,6 @@ def train_model(epoch, model, train_loader, optimizer, criterion, params):
             loss = criterion(preds, target)
             if params.loss_weighting:
                 weight = torch.ones(target.size(), dtype=torch.float64) + params.pen_apnea*target
-                weight /= weight.sum(dim=1)
                 loss = loss * weight
                 loss = loss.mean()
 
@@ -104,7 +103,6 @@ def evaluate_model(epoch, model, val_loader, criterion, params):
                 loss = criterion(preds, target)
                 if params.loss_weighting:
                     weight = torch.ones(target.size(), dtype=torch.float64) + params.pen_apnea*target
-                    weight /= weight.sum(dim=1)
                     loss = loss * weight
                     loss = loss.mean()
                 acc = dreem_sleep_apnea_custom_metric((preds.detach()>0.5).float(), (target.detach()>pow(10,-5)).float())
