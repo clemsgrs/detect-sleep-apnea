@@ -107,6 +107,7 @@ class SleepApneaDataModule():
         self.data_dir = p.data_dir
         self.train_data_file = p.train_data_file
         self.test_data_file = p.test_data_file
+        self.val_size = p.val_size
         self.target_file = p.target_file
         self.p = p
 
@@ -123,7 +124,7 @@ class SleepApneaDataModule():
             print(f'...done.')
         else:
             train_df = pd.DataFrame(np.array(h5py.File(Path(self.data_dir, self.train_data_file), mode='r')['data']))
-            train_df, val_df = train_test_split(train_df, test_size=0.3)
+            train_df, val_df = train_test_split(train_df, test_size=self.val_size, random_state=self.seed)
             if self.save_csv:
                 train_df.to_csv(Path(self.data_dir, f'train.csv'), index=False)
                 val_df.to_csv(Path(self.data_dir, f'val.csv'), index=False)
@@ -157,7 +158,9 @@ class EmbeddedDataModule():
         self.data_dir = p.data_dir
         self.train_data_file = p.train_data_file
         self.test_data_file = p.test_data_file
+        self.val_size = p.val_size
         self.target_file = p.target_file
+        self.seed = p.seed
         self.p = p
 
     def setup(self):
@@ -173,7 +176,7 @@ class EmbeddedDataModule():
             print(f'...done.')
         else:
             train_df = pd.DataFrame(np.array(h5py.File(Path(self.data_dir, self.train_data_file), mode='r')['data']))
-            train_df, val_df = train_test_split(train_df, test_size=0.3)
+            train_df, val_df = train_test_split(train_df, test_size=self.val_size, random_state=self.seed)
             if self.save_csv:
                 train_df.to_csv(Path(self.data_dir, f'train.csv'), index=False)
                 val_df.to_csv(Path(self.data_dir, f'val.csv'), index=False)

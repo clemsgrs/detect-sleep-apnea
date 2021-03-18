@@ -110,11 +110,32 @@ class GroupedConv2D(nn.Module):
 
     self.seq_length = p.seq_length
     self.in_channels = len(p.signal_ids)
+    self.n_groups = p.n_groups
 
-    self.conv1 = nn.Conv2d(self.in_channels, self.in_channels*2 kernel_size=(1,50), groups=self.in_channels)
-    self.conv2 = nn.Conv2d(self.in_channels*2, self.in_channels*4, kernel_size=(1,20), groups=self.in_channels)
-    self.conv3 = nn.Conv2d(self.in_channels*4, self.in_channels*8, kernel_size=(1,3), groups=self.in_channels)
-    self.conv4 = nn.Conv2d(self.in_channels*8, self.in_channels, kernel_size=(1,1), groups=self.in_channels)
+    self.conv1 = nn.Conv2d(
+      self.in_channels,
+      self.in_channels*self.n_groups, 
+      kernel_size=(1,50), 
+      groups=self.in_channels
+    )
+    self.conv2 = nn.Conv2d(
+      self.in_channels*self.n_groups, 
+      self.in_channels*self.n_groups*2, 
+      kernel_size=(1,20), 
+      groups=self.in_channels
+    )
+    self.conv3 = nn.Conv2d(
+      self.in_channels*self.n_groups*2, 
+      self.in_channels*self.n_groups*4, 
+      kernel_size=(1,3), 
+      groups=self.in_channels
+    )
+    self.conv4 = nn.Conv2d(
+      self.in_channels*self.n_groups*4, 
+      self.in_channels, 
+      kernel_size=(1,1), 
+      groups=self.in_channels
+    )
     
     self.dropout = nn.Dropout(p.dropout_p)
     self.relu = nn.ReLU()
