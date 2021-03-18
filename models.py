@@ -102,6 +102,49 @@ class Conv2D(nn.Module):
     return x
 
 
+class GroupedConv2D(nn.Module):
+
+  def __init__(self, p):
+
+    super().__init__()
+
+    self.seq_length = p.seq_length
+    self.in_channels = len(p.signal_ids)
+
+    self.conv1 = nn.Conv2d(self.in_channels, self.in_channels*2 kernel_size=(1,50), groups=self.in_channels)
+    self.conv2 = nn.Conv2d(self.in_channels*2, self.in_channels*4, kernel_size=(1,20), groups=self.in_channels)
+    self.conv3 = nn.Conv2d(self.in_channels*4, self.in_channels*8, kernel_size=(1,3), groups=self.in_channels)
+    self.conv4 = nn.Conv2d(self.in_channels*8, self.in_channels, kernel_size=(1,1), groups=self.in_channels)
+    
+    self.dropout = nn.Dropout(p.dropout_p)
+    self.relu = nn.ReLU()
+
+  def forward(self, x):
+
+    x = self.conv1(x)
+    x = self.relu(x)
+    x = self.dropout(x)
+
+    x = self.conv2(x)
+    x = self.relu(x)
+    x = self.dropout(x)
+
+    x = self.conv3(x)
+    x = self.relu(x)
+    x = self.dropout(x)
+
+    x = self.conv4(x)
+    x = self.relu(x)
+
+    x = x.permute(0, 2, 3, 1)
+    x = x.reshape(x.shape[0], x.shape[1], x.shape[2]*x.shape[3])
+
+    # for good RNN integration, x should be (batch, seq_len, conv_output_dim)
+    # x = x.squeeze(1)
+
+    return x
+
+
 class LSTM(nn.Module):
   def __init__(self, p):
 
@@ -191,6 +234,9 @@ class EncoderDecoder(nn.Module):
     
     if p.encoder == 'conv2d':
       self.encoder = Conv2D(p)
+    elif p.encoder == 'grouped_conv2d':
+      self.encoder = GroupedConv2D(p)
+      p.conv_output_dim *= len(p.signal_ids)
     else:
       raise ValueError(f'{p.encoder} not supported yet')
 
