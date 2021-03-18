@@ -40,6 +40,8 @@ val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=params.batch_si
 
 model = create_model(params)
 optimizer = optim.Adam(model.parameters(), lr=params.lr)
+if params.lr_scheduler:
+    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=params.lr_step, gamma=0.1)
 model = model.cuda()
 
 if params.loss_weighting:
@@ -75,6 +77,9 @@ for epoch in range(params.nepochs):
             if valid_acc > best_valid_acc:
                 best_valid_acc = valid_acc
                 torch.save(model.state_dict(), 'best_model.pt')
+    
+    if params.lr_scheduler:
+        scheduler.step()
 
     end_time = time.time()
     epoch_mins, epoch_secs = epoch_time(start_time, end_time)
