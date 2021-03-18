@@ -6,6 +6,27 @@ from transformers import BertModel
 
 allowed_model_names = ['conv', 'rnn', 'lstm', 'gru', 'transformer', 'encoder_decoder']
 
+
+class Force_connex(nn.Module):
+  def __init__(self,p):
+    super().__init__()
+    self.len_window = p.len_window
+    self.low_threshold = p.low_threshold
+    self.high_threshold = p.high_threshold
+
+    self.avgpool = torch.nn.AvgPool1d(kernel_size=self.len_window,
+          stride=1, padding=self.len_window//2, count_include_pad=False)
+
+  def forward(self,x):
+    y = self.avgpool(x.unsqueeze(1))
+    y = torch.squeeze(y)
+    surrounded_by_high = torch.gt(y,self.high_threshold)
+    surrounded_by_low = torch.logical_not(torch.gt(y,self.low_threshold))
+    decrease = torch.logical_and(torch.gt(x,0.5), surrounded_by_low)
+    increase = torch.logical_and(torch.logical_not(torch.gt(x,0.5)), surrounded_by_high)
+    x = torch.clip(x+increase.long()-decrease.long(), min=0, max=1)
+    return x
+
 class Conv1D(nn.Module):
 
   def __init__(self, p):
@@ -24,7 +45,7 @@ class Conv1D(nn.Module):
     self.conv1 = nn.Conv1d(self.in_channels, 16, self.ks[0], self.s[0])
     self.conv2 = nn.Conv1d(16, 32, self.ks[1], self.s[1])
     self.conv3 = nn.Conv1d(32, 64, self.ks[2], self.s[2])
-    
+
     self.maxpool = nn.MaxPool1d(10)
     self.avgpool = nn.AdaptiveAvgPool1d(100)
     self.dropout = nn.Dropout(p.dropout_p)
@@ -73,7 +94,7 @@ class Conv2D(nn.Module):
     self.conv2 = nn.Conv2d(4, 8, kernel_size=(1,20))
     self.conv3 = nn.Conv2d(8, 16, kernel_size=(1,3))
     self.conv4 = nn.Conv2d(16, 1, kernel_size=(1,1))
-    
+
     self.maxpool = nn.MaxPool2d(kernel_size=(1,2))
     self.avgpool = nn.AdaptiveAvgPool2d(100)
     self.dropout = nn.Dropout(p.dropout_p)
@@ -114,29 +135,29 @@ class GroupedConv2D(nn.Module):
 
     self.conv1 = nn.Conv2d(
       self.in_channels,
-      self.in_channels*self.n_groups, 
-      kernel_size=(1,50), 
+      self.in_channels*self.n_groups,
+      kernel_size=(1,50),
       groups=self.in_channels
     )
     self.conv2 = nn.Conv2d(
-      self.in_channels*self.n_groups, 
-      self.in_channels*self.n_groups*2, 
-      kernel_size=(1,20), 
+      self.in_channels*self.n_groups,
+      self.in_channels*self.n_groups*2,
+      kernel_size=(1,20),
       groups=self.in_channels
     )
     self.conv3 = nn.Conv2d(
-      self.in_channels*self.n_groups*2, 
-      self.in_channels*self.n_groups*4, 
-      kernel_size=(1,3), 
+      self.in_channels*self.n_groups*2,
+      self.in_channels*self.n_groups*4,
+      kernel_size=(1,3),
       groups=self.in_channels
     )
     self.conv4 = nn.Conv2d(
-      self.in_channels*self.n_groups*4, 
-      self.in_channels, 
-      kernel_size=(1,1), 
+      self.in_channels*self.n_groups*4,
+      self.in_channels,
+      kernel_size=(1,1),
       groups=self.in_channels
     )
-    
+
     self.dropout = nn.Dropout(p.dropout_p)
     self.relu = nn.ReLU()
 
@@ -172,7 +193,7 @@ class LSTM(nn.Module):
     super().__init__()
 
     self.bidirectional = p.bidirectional
-    
+
     self.rnn = nn.LSTM(input_size=p.input_dim,
                       hidden_size=p.hidden_dim,
                       num_layers=p.n_layers,
@@ -189,7 +210,7 @@ class LSTM(nn.Module):
   def forward(self, x):
 
     x, (hidden, cell) = self.rnn(x)
-    
+
     if self.last_layer == 'fc':
       x = self.fc(x)
     elif self.last_layer == 'conv':
@@ -207,9 +228,9 @@ class BERT(nn.Module):
   def __init__(self, p):
 
     super().__init__()
-    
+
     self.bert_config = transformers.BertConfig(
-      vocab_size=1, 
+      vocab_size=1,
       hidden_size=p.input_dim,
       num_hidden_layers=p.n_layers,
       num_attention_heads=p.n_heads,
@@ -252,7 +273,8 @@ class EncoderDecoder(nn.Module):
     self.seq_length = p.seq_length
     self.conv_output_dim = p.conv_output_dim
     self.relu = nn.ReLU()
-    
+    self.force_connex = p.force_connex
+
     if p.encoder == 'conv2d':
       self.encoder = Conv2D(p)
     elif p.encoder == 'grouped_conv2d':
@@ -270,11 +292,16 @@ class EncoderDecoder(nn.Module):
     elif p.decoder != 'conv':
       raise ValueError(f'{p.model} not supported yet')
 
+    if self.force_connex:
+      self.Force_connexity = Force_connex(p)
+
   def forward(self, x):
 
     x = self.encoder(x)
     x = self.relu(x)
     x = self.decoder(x)
+    if self.force_connex:
+      x = self.Force_connexity(x)
 
     return x
 
@@ -298,5 +325,5 @@ def create_model(p):
         elif p.model == 'conv':
           model = Conv1D(p)
         print(f'{p.model} was created\n')
-    
+
     return model
