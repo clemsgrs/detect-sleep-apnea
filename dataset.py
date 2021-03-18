@@ -109,6 +109,7 @@ class SleepApneaDataModule():
         self.test_data_file = p.test_data_file
         self.val_size = p.val_size
         self.target_file = p.target_file
+        self.seed = p.seed
         self.p = p
 
     def setup(self):
