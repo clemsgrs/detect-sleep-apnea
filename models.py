@@ -206,6 +206,10 @@ class LSTM(nn.Module):
     self.fc = nn.Linear(in_features=conv_input_dim, out_features=1)
     self.dropout = nn.Dropout(p.dropout_p)
     self.last_layer = p.last_layer
+    self.force_connex = p.force_connex
+
+    if self.force_connex:
+      self.Force_connexity = Force_connex(p)
 
   def forward(self, x):
 
@@ -219,8 +223,12 @@ class LSTM(nn.Module):
     else:
       ValueError(f'{self.last_layer} not supported yet')
     x = x.squeeze()
+    torch.sigmoid(x)
 
-    return torch.sigmoid(x)
+    if p.force_connex:
+      x = self.Force_connexity(x)
+
+    return x
 
 
 class BERT(nn.Module):
