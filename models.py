@@ -17,13 +17,14 @@ class Force_connex(nn.Module):
     self.avgpool = torch.nn.AvgPool1d(kernel_size=self.len_window,
           stride=1, padding=self.len_window//2, count_include_pad=False)
 
-  def forward(self,x):
-    y = self.avgpool(x.unsqueeze(1))
+  def forward(self,x,threshold):
+    y = x.unsqueeze(1)
+    y = self.avgpool(y)
     y = torch.squeeze(y)
     surrounded_by_high = torch.gt(y,self.high_threshold)
     surrounded_by_low = torch.logical_not(torch.gt(y,self.low_threshold))
-    decrease = torch.logical_and(torch.gt(x,0.5), surrounded_by_low)
-    increase = torch.logical_and(torch.logical_not(torch.gt(x,0.5)), surrounded_by_high)
+    decrease = torch.logical_and(torch.gt(x,threshold), surrounded_by_low)
+    increase = torch.logical_and(torch.logical_not(torch.gt(x,threshold)), surrounded_by_high)
     x = torch.clip(x+increase.long()-decrease.long(), min=0, max=1)
     return x
 

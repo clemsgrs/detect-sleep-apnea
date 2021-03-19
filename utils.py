@@ -6,8 +6,9 @@ import pandas as pd
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 from scipy.fft import rfftn
-from metric_dreem import dreem_sleep_apnea_custom_metric
 
+from metric_dreem import dreem_sleep_apnea_custom_metric
+from models import Force_connex
 
 class AttrDict(dict):
     def __init__(self, *args, **kwargs):
@@ -40,11 +41,13 @@ def format_prediction_to_submission_canvas(prediction_dict):
 #     if net == 'CMCMCC':
 
 
-def train_model(epoch, model, train_loader, optimizer, criterion, params):
+def train_model(epoch, model, train_loader, optimizer, criterion, params, threshold=0.5):
 
     epoch_loss = 0
     epoch_acc = 0
+    epoch_acc_pp = 0
     model.train()
+    fcnx = Force_connex(params)
 
     with tqdm(train_loader,
               desc=(f'Train - Epoch: {epoch}'),
@@ -67,22 +70,32 @@ def train_model(epoch, model, train_loader, optimizer, criterion, params):
                 loss = loss * weight
                 loss = loss.mean()
 
-            acc = dreem_sleep_apnea_custom_metric((preds.detach()>0.5).float(), (target.detach()>pow(10,-5)).float())
-
+            acc = dreem_sleep_apnea_custom_metric((preds.detach()>threshold).float(), (target.detach()>pow(10,-5)).float())
+            if params.post_process:
+                with torch.no_grad():
+                    preds_pp = fcnx(preds,threshold)
+                    acc_pp = dreem_sleep_apnea_custom_metric((preds_pp.detach()>threshold).float(), (target.detach()>pow(10,-5)).float())
+            
             loss.backward()
             optimizer.step()
 
             epoch_loss += loss.item()
             epoch_acc += acc
+            epoch_acc_pp += acc_pp
 
-    return epoch_loss / len(train_loader), epoch_acc / len(train_loader)
+    if params.post_process:
+        return epoch_loss / len(train_loader), epoch_acc / len(train_loader), epoch_acc_pp / len(train_loader)
+    else:
+        return epoch_loss / len(train_loader), epoch_acc / len(train_loader)
 
 
-def evaluate_model(epoch, model, val_loader, criterion, params):
+def evaluate_model(epoch, model, val_loader, criterion, params, threshold=0.5):
 
     epoch_loss = 0
     epoch_acc = 0
+    epoch_acc_pp = 0
     model.eval()
+    fcnx = Force_connex(params)
 
     with tqdm(val_loader,
              desc=(f'Validation - Epoch: {epoch}'),
@@ -105,18 +118,28 @@ def evaluate_model(epoch, model, val_loader, criterion, params):
                     weight = torch.ones(target.size(), dtype=torch.float64) + params.pen_apnea*target
                     loss = loss * weight
                     loss = loss.mean()
-                acc = dreem_sleep_apnea_custom_metric((preds.detach()>0.5).float(), (target.detach()>pow(10,-5)).float())
+                
+                acc = dreem_sleep_apnea_custom_metric((preds.detach()>threshold).float(), (target.detach()>pow(10,-5)).float())
+                if params.post_process:
+                    preds_pp = fcnx(preds,threshold)
+                    acc_pp = dreem_sleep_apnea_custom_metric((preds_pp.detach()>threshold).float(), (target.detach()>pow(10,-5)).float())
 
                 epoch_loss += loss.item()
                 epoch_acc += acc
+                epoch_acc_pp += acc_pp
 
-    return epoch_loss / len(val_loader), epoch_acc / len(val_loader)
+    if params.post_process:
+        return epoch_loss / len(val_loader), epoch_acc / len(val_loader), epoch_acc_pp / len(val_loader)
+    else:
+        return epoch_loss / len(val_loader), epoch_acc / len(val_loader)
+
 
 
 def test_model(model, test_loader, params, threshold=0.5):
 
     model.eval()
     preds_dict = {}
+    fcnx = Force_connex(params)
 
     with tqdm(test_loader,
              desc=(f'Test: '),
@@ -130,10 +153,15 @@ def test_model(model, test_loader, params, threshold=0.5):
 
                 signal = signal.type(torch.FloatTensor)
                 signal = signal.cuda()
-                preds = model(signal)
+                preds = model(signal).unsqueeze(0)
                 preds = preds.type(torch.FloatTensor).cpu()
                 sample_index = sample_index.item()
-                preds_dict[int(sample_index)] = [int(x>threshold) for x in preds.tolist()]
+                if params.post_process:
+                    preds_pp = fcnx(preds,threshold)
+                    preds_pp = preds_pp.squeeze(0)
+                    preds_dict[int(sample_index)] = [int(x>threshold) for x in preds.tolist()]
+                else:
+                    preds_dict[int(sample_index)] = [int(x>threshold) for x in preds.tolist()]
 
     preds_df = format_prediction_to_submission_canvas(preds_dict)
     return preds_df
