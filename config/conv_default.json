@@ -40,6 +40,9 @@
     "smooth_y": true,
     "loss_weighting": true,
     "pen_apnea": 3,
-    "n_groups": 2
+    "n_groups": 2,
+    "force_connex": true,
+    "len_window": 7,
+    "low_threshold": 0.3,
+    "high_threshold": 0.7
 }
-
