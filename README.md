@@ -15,3 +15,9 @@ To train a model, just download the `dreem_lstm.ipynb` notebook and open it with
 - [ ] try better loss / training strategy to account for temporal relations in target prediction
 - [x] try self-attention encoder instead of rnn (couldn't manage to train the self-att encoder properly...)
 - [ ] try training a decoder as in a seq2seq model
+
+Final rush:
+- [ ] try different classification thresholds
+- [ ] try connexity in forward
+- [ ] try connexity as post-processing (if statement everywhere)
+- [ ] try smoothing with bigger sigma (sigma = 2 good start)
