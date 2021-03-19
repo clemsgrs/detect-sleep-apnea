@@ -225,7 +225,7 @@ class LSTM(nn.Module):
     x = x.squeeze()
     torch.sigmoid(x)
 
-    if p.force_connex:
+    if self.force_connex:
       x = self.Force_connexity(x)
 
     return x
@@ -281,7 +281,6 @@ class EncoderDecoder(nn.Module):
     self.seq_length = p.seq_length
     self.conv_output_dim = p.conv_output_dim
     self.relu = nn.ReLU()
-    self.force_connex = p.force_connex
 
     if p.encoder == 'conv2d':
       self.encoder = Conv2D(p)
@@ -300,16 +299,13 @@ class EncoderDecoder(nn.Module):
     elif p.decoder != 'conv':
       raise ValueError(f'{p.model} not supported yet')
 
-    if self.force_connex:
-      self.Force_connexity = Force_connex(p)
+
 
   def forward(self, x):
 
     x = self.encoder(x)
     x = self.relu(x)
     x = self.decoder(x)
-    if self.force_connex:
-      x = self.Force_connexity(x)
 
     return x
 
