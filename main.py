@@ -77,7 +77,7 @@ for epoch in range(params.nepochs):
             if valid_acc > best_valid_acc:
                 best_valid_acc = valid_acc
                 torch.save(model.state_dict(), 'best_model.pt')
-    
+
     if params.lr_scheduler:
         scheduler.step()
 
@@ -91,6 +91,7 @@ plot_curves(train_losses, train_accuracies, val_losses, val_accuracies, params)
 
 ### TESTING
 
+params = open_config_file(args.config)
 print('Beginning testing...')
 test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=1, shuffle=False)
 # load best weights from training (based on params.tracking value)
@@ -100,5 +101,5 @@ best_model = best_model.cuda()
 best_model.eval()
 
 test_predictions_df = test_model(best_model, test_loader, params, threshold=0.5)
-test_predictions_df.to_csv('test_predictions.csv', index=False)
+test_predictions_df.to_csv(f'test_predictions.csv', index=False)
 print('done')
