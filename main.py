@@ -87,6 +87,11 @@ for epoch in range(params.nepochs):
     print(f'Train loss: {np.round(train_loss,6)} \t Train acc: {np.round(train_acc,4)}')
     print(f'Val loss: {np.round(valid_loss,6)} \t Val acc: {np.round(valid_acc,4)}\n')
 
+bvl = np.round(best_valid_loss,6)
+bvl_acc = np.round(val_accuracies[val_losses.index(best_valid_loss)],4)
+bacc = np.round(np.min(val_accuracies),4)
+print(f'End of training: best val loss = {bvl} | associated val_acc = {bvl_acc} | best val acc = {bacc}\n')
+
 plot_curves(train_losses, train_accuracies, val_losses, val_accuracies, params)
 
 ### TESTING
