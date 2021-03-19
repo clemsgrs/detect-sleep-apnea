@@ -223,7 +223,7 @@ class LSTM(nn.Module):
     else:
       ValueError(f'{self.last_layer} not supported yet')
     x = x.squeeze()
-    torch.sigmoid(x)
+    x = torch.sigmoid(x)
 
     if self.force_connex:
       x = self.Force_connexity(x)
