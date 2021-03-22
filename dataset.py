@@ -48,9 +48,10 @@ class SleepApneaDataset(torch.utils.data.Dataset):
       x[i] = self.data_df.iloc[idx, 2+self.signal_dim*signal_id:2+self.signal_dim*(signal_id+1)].values
     x = x.reshape(self.n_signal, self.seq_length, self.sampling_freq)
     x = normalize_apnea_data(x)
-    if self.model in ['lstm', 'transformer']:
+    if self.model in ['grouped_conv1d']:
+      x = x.squeeze(1)
+    elif self.model in ['lstm', 'transformer']:
       x = x.reshape(self.seq_length, self.sampling_freq*self.n_signal)
-    
     if self.test:
       return x, sample_index, subject_index
     else:
