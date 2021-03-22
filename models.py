@@ -86,9 +86,7 @@ class GroupedConv1D(nn.Module):
     super().__init__()
 
     self.seq_length = p.seq_length
-    self.conv_output_dim = p.conv_output_dim
     self.in_channels = len(p.signal_ids)
-    self.use_maxpool = p.use_maxpool
 
     self.conv1 = nn.Conv1d(
       in_channels=self.seq_length, 
@@ -115,9 +113,7 @@ class GroupedConv1D(nn.Module):
       groups=90
     )
 
-    self.maxpool = nn.MaxPool1d(2)
     self.dropout = nn.Dropout(p.dropout_p)
-
     self.fc = nn.Linear(30, 1)
     self.relu = nn.ReLU()
 
@@ -126,14 +122,10 @@ class GroupedConv1D(nn.Module):
     x = self.conv1(x)
     x = self.relu(x)
     x = self.dropout(x)
-    if self.use_maxpool:
-      x = self.maxpool(x)
 
     x = self.conv2(x)
     x = self.relu(x)
     x = self.dropout(x)
-    if self.use_maxpool:
-      x = self.maxpool(x)
 
     x = self.conv3(x)
     x = self.relu(x)
@@ -250,6 +242,33 @@ class GroupedConv2D(nn.Module):
     # x = x.squeeze(1)
 
     return x
+
+
+class RNN(nn.Module):
+  def __init__(self, p):
+
+    super().__init__()
+
+    self.bidirectional = p.bidirectional
+
+    self.rnn = nn.RNN(input_size=p.input_dim,
+                      hidden_size=p.hidden_dim,
+                      num_layers=p.n_layers,
+                      bidirectional=p.bidirectional,
+                      dropout=p.dropout_p,
+                      batch_first=True)
+
+    fc_input_dim = 2*p.hidden_dim if self.bidirectional else p.hidden_dim
+    self.fc = nn.Linear(in_features=fc_input_dim, out_features=1)
+    self.dropout = nn.Dropout(p.dropout_p)
+
+  def forward(self, x):
+
+    x, hidden = self.rnn(x)
+    x = self.fc(x)
+    x = x.squeeze()
+
+    return torch.sigmoid(x)
 
 
 class LSTM(nn.Module):
@@ -375,7 +394,10 @@ def create_model(p):
         model = EncoderDecoder(p)
         print(f'{p.model} was created: {p.encoder}+{p.decoder}\n')
       else:
-        if p.model == 'lstm':
+        if p.model == 'rnn':
+          p.input_dim = p.input_dim * len(p.signal_ids)
+          model = RNN(p)
+        elif p.model == 'lstm':
           p.input_dim = p.input_dim * len(p.signal_ids)
           model = LSTM(p)
         elif p.model == 'transformer':
