@@ -159,7 +159,7 @@ def test_model(model, test_loader, params, threshold=0.5):
                 if params.post_process:
                     preds_pp = fcnx(preds,threshold)
                     preds_pp = preds_pp.squeeze(0)
-                    preds_dict[int(sample_index)] = [int(x>threshold) for x in preds.tolist()]
+                    preds_dict[int(sample_index)] = [int(x>threshold) for x in preds_pp.tolist()]
                 else:
                     preds_dict[int(sample_index)] = [int(x>threshold) for x in preds.tolist()]
 

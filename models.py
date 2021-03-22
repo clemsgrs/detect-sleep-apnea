@@ -4,7 +4,7 @@ import torch.nn.functional as F
 import transformers
 from transformers import BertModel
 
-allowed_model_names = ['conv', 'rnn', 'lstm', 'gru', 'transformer', 'encoder_decoder']
+allowed_model_names = ['conv', 'rnn', 'lstm', 'gru', 'transformer', 'encoder_decoder', 'grouped_conv1d']
 
 
 class Force_connex(nn.Module):
@@ -37,15 +37,13 @@ class Conv1D(nn.Module):
     self.seq_length = p.seq_length
     self.conv_output_dim = p.conv_output_dim
     self.in_channels = len(p.signal_ids)
-    self.ks = p.kernel_sizes
-    self.s = p.strides
     self.use_maxpool = p.use_maxpool
     self.use_avgpool = p.use_avgpool
     assert len(self.ks) == 3
 
-    self.conv1 = nn.Conv1d(self.in_channels, 16, self.ks[0], self.s[0])
-    self.conv2 = nn.Conv1d(16, 32, self.ks[1], self.s[1])
-    self.conv3 = nn.Conv1d(32, 64, self.ks[2], self.s[2])
+    self.conv1 = nn.Conv1d(self.in_channels, 16, 5)
+    self.conv2 = nn.Conv1d(16, 32, 5)
+    self.conv3 = nn.Conv1d(32, 64, 3)
 
     self.maxpool = nn.MaxPool1d(10)
     self.avgpool = nn.AdaptiveAvgPool1d(100)
@@ -79,6 +77,72 @@ class Conv1D(nn.Module):
     x = self.fc(x)
 
     return x
+
+
+class GroupedConv1D(nn.Module):
+
+  def __init__(self, p):
+
+    super().__init__()
+
+    self.seq_length = p.seq_length
+    self.conv_output_dim = p.conv_output_dim
+    self.in_channels = len(p.signal_ids)
+    self.use_maxpool = p.use_maxpool
+
+    self.conv1 = nn.Conv1d(
+      in_channels=self.seq_length, 
+      out_channels=self.seq_length*4, 
+      kernel_size=50, 
+      groups=90
+    )
+    self.conv2 = nn.Conv1d(
+      in_channels=self.seq_length*4, 
+      out_channels=self.seq_length*8, 
+      kernel_size=20, 
+      groups=90
+    )
+    self.conv3 = nn.Conv1d(
+      in_channels=self.seq_length*8, 
+      out_channels=self.seq_length*16, 
+      kernel_size=3, 
+      groups=90
+    )
+    self.conv4 = nn.Conv1d(
+      90*16,
+      90,
+      kernel_size=1,
+      groups=90
+    )
+
+    self.maxpool = nn.MaxPool1d(2)
+    self.dropout = nn.Dropout(p.dropout_p)
+
+    self.fc = nn.Linear(30, 1)
+    self.relu = nn.ReLU()
+
+  def forward(self, x):
+
+    x = self.conv1(x)
+    x = self.relu(x)
+    x = self.dropout(x)
+    if self.use_maxpool:
+      x = self.maxpool(x)
+
+    x = self.conv2(x)
+    x = self.relu(x)
+    x = self.dropout(x)
+    if self.use_maxpool:
+      x = self.maxpool(x)
+
+    x = self.conv3(x)
+    x = self.relu(x)
+    x = self.dropout(x)
+
+    x = self.conv4(x)
+    x = self.fc(x)
+
+    return torch.sigmoid(x)
 
 
 class Conv2D(nn.Module):
@@ -207,10 +271,6 @@ class LSTM(nn.Module):
     self.fc = nn.Linear(in_features=conv_input_dim, out_features=1)
     self.dropout = nn.Dropout(p.dropout_p)
     self.last_layer = p.last_layer
-    self.force_connex = p.force_connex
-
-    if self.force_connex:
-      self.Force_connexity = Force_connex(p)
 
   def forward(self, x):
 
@@ -224,12 +284,8 @@ class LSTM(nn.Module):
     else:
       ValueError(f'{self.last_layer} not supported yet')
     x = x.squeeze()
-    x = torch.sigmoid(x)
 
-    if self.force_connex:
-      x = self.Force_connexity(x)
-
-    return x
+    return torch.sigmoid(x)
 
 
 class BERT(nn.Module):
@@ -300,8 +356,6 @@ class EncoderDecoder(nn.Module):
     elif p.decoder != 'conv':
       raise ValueError(f'{p.model} not supported yet')
 
-
-
   def forward(self, x):
 
     x = self.encoder(x)
@@ -327,8 +381,8 @@ def create_model(p):
         elif p.model == 'transformer':
           p.input_dim = p.input_dim * len(p.signal_ids)
           model = BERT(p)
-        elif p.model == 'conv':
-          model = Conv1D(p)
+        elif p.model == 'grouped_conv1d':
+          model = GroupedConv1D(p)
         print(f'{p.model} was created\n')
 
     return model
