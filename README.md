@@ -1,5 +1,9 @@
 # Detect Sleep Apnea
-ENS challenge data
+ENS data challenge submitted by [Dreem](https://dreem.com) where the goal was to detect sleep apnea events from polysomnography (PSG) signals.<br>
+This challenge was proposed as part of the "Sparse Representation" course dispensed by Pr. S. Mallat at MVA.<br>
+We ended with a **0.6503** score in the private academic leader-board in the limited time of that course (rank 1).
+
+Our work is described in [this]() scientific report.
 
 # How to run code?
 To train a model, just download the `dreem_lstm.ipynb` notebook and open it with Google Colab. In the notebook, we first download the data, then we run training.
@@ -15,8 +19,6 @@ To train a model, just download the `dreem_lstm.ipynb` notebook and open it with
 - [ ] try better loss / training strategy to account for temporal relations in target prediction
 - [x] try self-attention encoder instead of rnn (couldn't manage to train the self-att encoder properly...)
 - [ ] try training a decoder as in a seq2seq model
-
-Final rush:
 - [ ] try different classification thresholds
 - [ ] try connexity in forward
 - [ ] try connexity as post-processing (if statement everywhere)
